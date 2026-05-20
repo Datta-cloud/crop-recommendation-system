@@ -14,67 +14,6 @@ A farmer enters 7 values → the ML model analyses them → it suggests the best
 
 ---
 
-## 📁 Project Files
-
-```
-crop-recommendation/
-│
-├── train_model.py          ← Run this FIRST to train the ML model
-├── app.py                  ← Run this SECOND to start the web app
-├── Crop_recommendation.csv ← Dataset with 2200 crop examples
-│
-├── templates/
-│   └── index.html          ← The webpage (what users see)
-│
-├── crop_model.pkl          ← Saved ML model (created after training)
-├── crop_names.pkl          ← Saved crop list (created after training)
-│
-├── requirements.txt        ← Python libraries needed
-└── README.md               ← This file!
-```
-
----
-
-## 🚀 How to Run (Step by Step)
-
-### Step 1: Install Python Libraries
-
-Open terminal/command prompt and run:
-```bash
-pip install flask numpy pandas scikit-learn matplotlib
-```
-
-### Step 2: Train the ML Model
-
-```bash
-python train_model.py
-```
-
-You'll see output like:
-```
-✅ Model training complete!
-🎯 Model Accuracy: 99.32%
-💾 Model saved as: crop_model.pkl
-```
-
-### Step 3: Start the Web App
-
-```bash
-python app.py
-```
-
-You'll see:
-```
- * Running on http://127.0.0.1:5000
-```
-
-### Step 4: Open in Browser
-
-Go to: **http://127.0.0.1:5000**
-
-Fill in the form and click **"Recommend Best Crop"**!
-
----
 
 ## 🧠 How Does Machine Learning Work Here?
 
@@ -155,32 +94,5 @@ By completing this project, you learned:
 5. **HTML/CSS** — Creating a webpage interface
 6. **Pickle** — Saving and loading ML models
 
----
 
-## 🛠️ Troubleshooting
-
-| Problem | Solution |
-|---------|----------|
-| `ModuleNotFoundError` | Run `pip install flask sklearn pandas numpy` |
-| `FileNotFoundError: crop_model.pkl` | Run `python train_model.py` first! |
-| `Port already in use` | Change port: `app.run(port=5001)` |
-| Blank page | Check terminal for error messages |
-
----
-
-## 🎓 For Your Presentation
-
-**Explain these 3 things clearly:**
-
-1. **The Problem** — Farmers don't always know which crop suits their soil
-2. **The Solution** — ML model trained on 2200 soil/climate samples
-3. **The Result** — 99%+ accuracy with a simple web interface
-
-**Key talking points:**
-- Used Random Forest (ensemble of 100 decision trees)
-- Dataset has 22 different crops
-- Built a web interface using Flask
-
----
-
-Made with 🌱 Python + Flask + Scikit-Learn | 1st Year Engineering Project
+Made with 🌱 Python + Flask + Scikit-Learn 
