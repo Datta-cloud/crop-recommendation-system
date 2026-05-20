@@ -1,1 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🌾 Crop Recommendation System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    /* =============================================
+       COLORS & THEME VARIABLES
+       ============================================= */
+    :root {
+      --green-deep: #1a3d2b;
+      --green-mid:  #2e6b46;
+      --green-soft: #4caf50;
+      --green-light:#a8d5b5;
+      --cream:      #f9f4ec;
+      --amber:      #e8a838;
+      --white:      #ffffff;
+      --text-dark:  #1c1c1c;
+      --text-muted: #5a6a5e;
+    }
 
+    /* =============================================
+       RESET & BASE
+       ============================================= */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--text-dark);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* =============================================
+       HERO HEADER
+       ============================================= */
+    .hero {
+      background: var(--green-deep);
+      padding: 60px 24px 80px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Decorative circles */
+    .hero::before, .hero::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.07;
+      background: var(--green-soft);
+    }
+    .hero::before { width: 400px; height: 400px; top: -180px; left: -100px; }
+    .hero::after  { width: 300px; height: 300px; bottom: -150px; right: -80px; }
+
+    .hero-tag {
+      display: inline-block;
+      background: var(--amber);
+      color: var(--green-deep);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 5vw, 3.6rem);
+      font-weight: 900;
+      color: var(--white);
+      line-height: 1.15;
+      margin-bottom: 14px;
+    }
+
+    .hero h1 span { color: var(--green-light); }
+
+    .hero p {
+      color: rgba(255,255,255,0.65);
+      font-size: 1rem;
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* =============================================
+       MAIN CARD
+       ============================================= */
+    .container {
+      max-width: 760px;
+      margin: -40px auto 60px;
+      padding: 0 20px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.10);
+      overflow: hidden;
+    }
+
+    /* =============================================
+       HOW IT WORKS BAR
+       ============================================= */
+    .how-it-works {
+      background: linear-gradient(135deg, var(--green-mid), var(--green-deep));
+      padding: 22px 32px;
+      display: flex;
+      gap: 28px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: rgba(255,255,255,0.9);
+      font-size: 0.82rem;
+      font-weight: 500;
+    }
+
+    .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      border: 1.5px solid rgba(255,255,255,0.4);
+      display: grid;
+      place-items: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      color: var(--amber);
+    }
+
+    /* =============================================
+       FORM AREA
+       ============================================= */
+    .form-area {
+      padding: 36px 32px;
+    }
+
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--green-mid);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--green-light);
+      opacity: 0.5;
+    }
+
+    /* Grid: 3 columns on big screen, 2 on medium, 1 on small */
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
+    .grid-1 { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 28px; }
+
+    @media (max-width: 600px) {
+      .grid-3, .grid-2 { grid-template-columns: 1fr 1fr; }
+      .form-area { padding: 24px 20px; }
+    }
+    @media (max-width: 400px) {
+      .grid-3, .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    /* Individual input field */
+    .field label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #dde8df;
+      border-radius: 10px;
+      font-size: 0.92rem;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text-dark);
+      background: #f8fbf8;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+
+    .field input:focus {
+      border-color: var(--green-soft);
+      box-shadow: 0 0 0 3px rgba(76,175,80,0.12);
+      background: var(--white);
+    }
+
+    .field .hint {
+      font-size: 0.7rem;
+      color: #9aab9d;
+      margin-top: 4px;
+    }
+
+    /* =============================================
+       SUBMIT BUTTON
+       ============================================= */
+    .btn-submit {
+      width: 100%;
+      padding: 16px;
+      background: var(--green-deep);
+      color: var(--white);
+      border: none;
+      border-radius: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn-submit:hover  { background: var(--green-mid); }
+    .btn-submit:active { transform: scale(0.99); }
+
+    /* =============================================
+       RESULT BOX
+       ============================================= */
+    .result-box {
+      margin: 0 32px 32px;
+      padding: 28px;
+      background: linear-gradient(135deg, #eaf6ec, #d4edda);
+      border: 2px solid var(--green-soft);
+      border-radius: 16px;
+      text-align: center;
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.92) translateY(10px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .result-icon {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .result-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--green-mid);
+      margin-bottom: 6px;
+    }
+
+    .result-crop {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--green-deep);
+      letter-spacing: 1px;
+    }
+
+    .result-note {
+      margin-top: 10px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    /* =============================================
+       FOOTER
+       ============================================= */
+    .footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 0.78rem;
+      color: #9aab9d;
+      border-top: 1px solid #edf1ed;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ====== HERO ====== -->
+  <div class="hero">
+    <div class="hero-tag">🤖 ML-Powered</div>
+    <h1>Crop <span>Recommendation</span><br/>System</h1>
+    <p>Enter your soil and climate data — our machine learning model will suggest the best crop to grow.</p>
+  </div>
+
+  <!-- ====== MAIN CARD ====== -->
+  <div class="container">
+    <div class="card">
+
+      <!-- How it works -->
+      <div class="how-it-works">
+        <div class="step"><div class="step-num">1</div> Enter soil & climate data</div>
+        <div class="step"><div class="step-num">2</div> ML model analyses it</div>
+        <div class="step"><div class="step-num">3</div> Get crop recommendation</div>
+      </div>
+
+      <!-- FORM -->
+      <form class="form-area" action="/predict" method="POST">
+
+        <!-- Soil Nutrients -->
+        <div class="section-label">🧪 Soil Nutrients (kg/ha)</div>
+        <div class="grid-3">
+          <div class="field">
+            <label>Nitrogen (N)</label>
+            <input type="number" name="Nitrogen" placeholder="e.g. 90" min="0" max="200" step="0.1" required/>
+            <div class="hint">Range: 0 – 140</div>
+          </div>
+          <div class="field">
+            <label>Phosphorus (P)</label>
+            <input type="number" name="Phosphorus" placeholder="e.g. 42" min="0" max="200" step="0.1" required/>
+            <div class="hint">Range: 5 – 145</div>
+          </div>
+          <div class="field">
+            <label>Potassium (K)</label>
+            <input type="number" name="Potassium" placeholder="e.g. 43" min="0" max="200" step="0.1" required/>
+            <div class="hint">Range: 5 – 205</div>
+          </div>
+        </div>
+
+        <!-- Climate -->
+        <div class="section-label">🌤️ Climate Conditions</div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Temperature (°C)</label>
+            <input type="number" name="Temperature" placeholder="e.g. 25" min="0" max="60" step="0.1" required/>
+            <div class="hint">Range: 8 – 44 °C</div>
+          </div>
+          <div class="field">
+            <label>Humidity (%)</label>
+            <input type="number" name="Humidity" placeholder="e.g. 80" min="0" max="100" step="0.1" required/>
+            <div class="hint">Range: 14 – 100 %</div>
+          </div>
+        </div>
+
+        <!-- Soil Properties -->
+        <div class="section-label">🌱 Soil Properties</div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Soil pH</label>
+            <input type="number" name="pH" placeholder="e.g. 6.5" min="0" max="14" step="0.01" required/>
+            <div class="hint">Range: 3.5 – 9.9</div>
+          </div>
+          <div class="field">
+            <label>Rainfall (mm)</label>
+            <input type="number" name="Rainfall" placeholder="e.g. 200" min="0" max="300" step="0.1" required/>
+            <div class="hint">Range: 20 – 300 mm</div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit">🌾 Recommend Best Crop</button>
+      </form>
+
+      <!-- ====== RESULT (only shown after prediction) ====== -->
+      {% if result %}
+      <div class="result-box">
+        <span class="result-icon">🎯</span>
+        <div class="result-label">Recommended Crop</div>
+        <div class="result-crop">{{ crop | upper }}</div>
+        <p class="result-note">Based on your soil nutrients and climate data, this is the best crop to grow.</p>
+      </div>
+      {% endif %}
+
+    </div><!-- end card -->
+  </div><!-- end container -->
+
+  <div class="footer">
+    Made with 🌱 using Flask + Machine Learning &nbsp;·&nbsp;
+  </div>
+
+</body>
+</html>
