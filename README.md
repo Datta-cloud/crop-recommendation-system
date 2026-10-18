@@ -1,5 +1,5 @@
 # 🌾 Crop Recommendation System
-### A Machine Learning Project for 1st Year Engineering Students
+### A Machine Learning Project
 
 ---
 
@@ -47,8 +47,7 @@ Raw Data → Split 80%/20% → Train on 80% → Test on 20% → Save Model
 ## 📊 What is Accuracy?
 
 After training, we test the model on new data.
-- **99% accuracy** = out of 100 predictions, 99 are correct!
-- This is excellent for a 1st year project 😊
+- **99% accuracy** = out of 100 predictions, 99 are correct
 
 ---
 
