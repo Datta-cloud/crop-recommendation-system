@@ -686,7 +686,7 @@ def test_llm_response_with_crop_outside_shortlist_is_rejected():
 
 
 def test_build_chat_model_gemini_defaults(monkeypatch):
-    """Gemini reranker defaults to 3.5 Flash-Lite (500 RPD) with JSON output and fast failover."""
+    """Gemini reranker uses the configured model with bounded latency."""
     from services.reranker import build_chat_model, load_llm_settings
 
     monkeypatch.setenv("GEMINI_API_KEY", "dummy-gemini-key")
@@ -695,17 +695,17 @@ def test_build_chat_model_gemini_defaults(monkeypatch):
     settings = load_llm_settings()
     assert settings.provider == "gemini"
     assert settings.model == "gemini-3.5-flash-lite"
-    assert settings.timeout == 45.0
+    assert settings.timeout == 12.0
 
     chat_model = build_chat_model(settings)
     assert chat_model.response_mime_type == "application/json"
-    assert chat_model.max_retries == 1
+    assert chat_model.max_retries == 0
 
     monkeypatch.setenv("LLM_MODEL", "gemini-2.5-flash")
     settings_25 = load_llm_settings()
     chat_25 = build_chat_model(settings_25)
     assert chat_25.thinking_budget == 0
-    assert chat_25.max_retries == 1
+    assert chat_25.max_retries == 0
 
 
 def test_gemini_quota_failure_does_not_try_other_models(monkeypatch):
