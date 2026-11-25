@@ -72,21 +72,22 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Configure Environment Variables (Optional for AI Reranking)
+### 3. Configure Environment Variables (Recommended for Render & AI Reranking)
 
-Copy `.env.example` to `.env` and add your server-side LLM provider key if you want LangChain weather reranking enabled:
+Copy `.env.example` to `.env` (or add these in **Render → Environment → Environment Variables**):
 
 ```bash
 cp .env.example .env
 ```
 
-Supported `LLM_PROVIDER` values:
-- `openai` (`LLM_MODEL=gpt-4o-mini`, `OPENAI_API_KEY` or `LLM_API_KEY`)
-- `groq` (`LLM_MODEL=llama-3.3-70b-versatile`, `GROQ_API_KEY` or `LLM_API_KEY`)
-- `gemini` (`LLM_MODEL=gemini-2.5-flash`, `GEMINI_API_KEY` or `LLM_API_KEY`)
-- `openai_compatible` (`LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY`)
-
-Without an LLM API key, the application still serves ML top-3 predictions and live 15-day Open-Meteo weather forecasts, falling back gracefully to the ML ranking.
+- **AI Reranking (`GEMINI_API_KEY` or other LLM provider):**
+  - `gemini`: set `GEMINI_API_KEY` (auto-detects `gemini` / `gemini-2.5-flash`, or override via `LLM_PROVIDER` and `LLM_MODEL`)
+  - `openai`: set `OPENAI_API_KEY` (`LLM_MODEL=gpt-4o-mini`)
+  - `groq`: set `GROQ_API_KEY` (`LLM_MODEL=llama-3.3-70b-versatile`)
+  - `openai_compatible`: set `LLM_PROVIDER=openai_compatible`, `LLM_BASE_URL`, `LLM_MODEL`, and `LLM_API_KEY`
+- **15-Day Weather Forecast (`WEATHER_API_KEY`, optional):**
+  - Without `WEATHER_API_KEY`, the app uses **Open-Meteo** with no API key required.
+  - On shared hosting (such as Render free tier), Open-Meteo may rate-limit shared egress IPs; setting `WEATHER_API_KEY` with a free **Visual Crossing** API key provides reliable 15-day forecasts with automatic fallback to Open-Meteo.
 
 ### 4. Retrain the ML Model (Optional)
 

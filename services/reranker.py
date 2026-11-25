@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
+import logging
 import os
 import re
 from typing import Any
@@ -21,6 +22,8 @@ from schemas import (
     WeatherSummary,
     validate_rerank_against_shortlist,
 )
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_MODELS = {
     "openai": "gpt-4o-mini",
@@ -329,7 +332,8 @@ def rerank_with_langchain(
                 "format_instructions": parser.get_format_instructions(),
             }
         )
-    except Exception:
+    except Exception as exc:
+        logger.warning("LangChain reranker call failed: %s", exc)
         return build_fallback_ranking(
             ml_top_3=ml_top_3,
             ai_status="unavailable",

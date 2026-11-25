@@ -436,6 +436,77 @@ def test_search_locations_timeout_raises_typed_error():
         search_locations("Pune", client=client)
 
 
+def test_visual_crossing_15_day_forecast_and_fallback(monkeypatch):
+    """When WEATHER_API_KEY is set, Visual Crossing 15-day data is parsed and falls back on error."""
+    pune = SelectedLocation(
+        name="Pune",
+        district="Pune",
+        state="Maharashtra",
+        country="India",
+        latitude=18.52,
+        longitude=73.86,
+    )
+    monkeypatch.setenv("WEATHER_API_KEY", "test-vc-key")
+
+    def vc_and_fallback_handler(request: httpx.Request) -> httpx.Response:
+        if "visualcrossing.com" in str(request.url):
+            return httpx.Response(
+                200,
+                json={
+                    "currentConditions": {
+                        "datetime": "16:00:00",
+                        "temp": 31.2,
+                        "humidity": 38.0,
+                        "precip": 0.0,
+                        "conditions": "Clear",
+                    },
+                    "days": [
+                        {
+                            "datetime": f"2026-12-{i + 1:02d}",
+                            "tempmin": 18.0,
+                            "tempmax": 32.0,
+                            "precip": 1.0 if i == 2 else 0.0,
+                            "precipprob": 40 if i == 2 else 0,
+                            "conditions": "Rain" if i == 2 else "Clear",
+                        }
+                        for i in range(15)
+                    ],
+                },
+            )
+        raise AssertionError(f"Unexpected fallback call: {request.url}")
+
+    client = httpx.Client(transport=httpx.MockTransport(vc_and_fallback_handler))
+    summary = fetch_weather_forecast(pune, forecast_days=15, client=client)
+    assert summary.days_covered == 15
+    assert summary.is_partial_forecast is False
+    assert summary.total_rainfall_mm == pytest.approx(1.0)
+    assert summary.current is not None
+    assert summary.current.temperature_c == 31.2
+
+    def vc_error_then_open_meteo_handler(request: httpx.Request) -> httpx.Response:
+        if "visualcrossing.com" in str(request.url):
+            return httpx.Response(429, json={"error": "rate limit"})
+        return httpx.Response(
+            200,
+            json={
+                "current": {"time": "2026-12-01T10:00", "temperature_2m": 29.0, "relative_humidity_2m": 45, "precipitation": 0.0, "weather_code": 0},
+                "daily": {
+                    "time": [f"2026-12-{i + 1:02d}" for i in range(15)],
+                    "temperature_2m_min": [19.0] * 15,
+                    "temperature_2m_max": [31.0] * 15,
+                    "precipitation_sum": [0.0] * 15,
+                    "precipitation_probability_max": [0] * 15,
+                    "weather_code": [0] * 15,
+                },
+            },
+        )
+
+    fallback_client = httpx.Client(transport=httpx.MockTransport(vc_error_then_open_meteo_handler))
+    fallback_summary = fetch_weather_forecast(pune, forecast_days=15, client=fallback_client)
+    assert fallback_summary.days_covered == 15
+    assert fallback_summary.total_rainfall_mm == 0.0
+
+
 def test_llm_response_with_crop_outside_shortlist_is_rejected():
     """LLM responses inventing non-shortlist, duplicate, or incomplete crops are rejected."""
     with open(BASE_DIR / "crop_model.pkl", "rb") as f:
