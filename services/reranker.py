@@ -99,9 +99,9 @@ def load_llm_settings() -> LLMSettings:
     base_url = os.getenv("LLM_BASE_URL", "").strip() or None
 
     try:
-        timeout = float(os.getenv("LLM_TIMEOUT_SECONDS", "45.0"))
+        timeout = float(os.getenv("LLM_TIMEOUT_SECONDS", "12.0"))
     except ValueError:
-        timeout = 45.0
+        timeout = 12.0
 
     if not provider:
         if os.getenv("OPENAI_API_KEY"):
@@ -186,7 +186,7 @@ def build_chat_model(settings: LLMSettings) -> BaseChatModel:
             "model": model_name,
             "google_api_key": settings.api_key,
             "timeout": settings.timeout,
-            "max_retries": 1,
+            "max_retries": 0,
             "response_mime_type": "application/json",
         }
         if "2.5" in model_name:
@@ -285,6 +285,8 @@ def _safe_llm_error_summary(exc: Exception) -> str:
         return "AI reranking model was not found for the configured provider (HTTP 404). Showing the original ML top 3."
     if "timeout" in raw_msg.lower() or "timed out" in raw_msg.lower():
         return "AI reranking request timed out. Showing the original ML top 3."
+    if status_code == 504 or "504" in raw_msg:
+        return "AI reranking provider timed out (HTTP 504). Showing the original ML top 3."
     code_part = f" (status {status_code})" if status_code else ""
     return f"AI reranking service failed ({exc_name}{code_part}). Showing the original ML top 3."
 
