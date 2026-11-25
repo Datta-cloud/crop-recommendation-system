@@ -45,7 +45,7 @@ Crop-Recommendation-System-Using-ML/
 │   ├── ml_service.py          # Model loading and predict_proba() top-3 decoding
 │   ├── weather.py             # Open-Meteo / Visual Crossing / MET Norway forecast client
 │   ├── reranker.py            # Configurable LangChain reranker & strict validation
-│   ├── rag_chat.py            # TF-IDF + cosine similarity retriever & Gemini 2.5 Flash chat
+│   ├── rag_chat.py            # TF-IDF + cosine similarity retriever & Gemini chat
 │   └── recommendation.py      # End-to-end recommendation orchestration
 ├── templates/
 │   └── index.html             # Responsive UI with location picker, chat panel, and EN/MR switch
@@ -90,7 +90,7 @@ cp .env.example .env
 ```
 
 - **AI Reranking (`GEMINI_API_KEY` or other LLM provider):**
-  - `gemini`: set `GEMINI_API_KEY` (auto-detects `gemini` / `gemini-3.5-flash-lite` for high 500 RPD free-tier quota, with automatic fallback across Gemini Flash models; override via `LLM_PROVIDER` and `LLM_MODEL`)
+  - `gemini`: set `GEMINI_API_KEY` (auto-detects `gemini` / `gemini-3.5-flash-lite`; override via `LLM_PROVIDER` and `LLM_MODEL`). If Gemini is rate-limited or unavailable, the app keeps the original ML ranking and explains the issue. The default reranking timeout is 12 seconds (`LLM_TIMEOUT_SECONDS`).
   - `openai`: set `OPENAI_API_KEY` (`LLM_MODEL=gpt-4o-mini`)
   - `groq`: set `GROQ_API_KEY` (`LLM_MODEL=llama-3.3-70b-versatile`)
   - `openai_compatible`: set `LLM_PROVIDER=openai_compatible`, `LLM_BASE_URL`, `LLM_MODEL`, and `LLM_API_KEY`
