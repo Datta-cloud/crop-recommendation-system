@@ -33,14 +33,6 @@ DEFAULT_MODELS = {
     "openai_compatible": "gpt-4o-mini",
 }
 
-GEMINI_FALLBACK_CHAIN = (
-    "gemini-3.5-flash-lite",
-    "gemini-3.8-flash",
-    "gemini-3.6-flash",
-    "gemini-3.5-flash",
-    "gemini-2.5-flash",
-)
-
 SYSTEM_PROMPT = """You are an agronomy decision assistant helping evaluate a machine-learning shortlist of 3 crops for a farmer's selected location.
 Your task is to evaluate whether the location's current weather, current date/sowing season, and near-term forecast (up to 15 days) mean the 3 ML candidate crops should be reordered right now.
 
@@ -346,7 +338,6 @@ def rerank_with_langchain(
     """Run LangChain prompt + Pydantic validation to evaluate near-term weather reranking."""
     resolved_settings = settings or load_llm_settings()
     used_model_name = resolved_settings.model
-    custom_chat_model = chat_model is not None
 
     if chat_model is None:
         try:
@@ -395,55 +386,16 @@ def rerank_with_langchain(
         raw_msg = (prompt | chat_model).invoke(prompt_inputs)
         raw_output = _extract_message_text(raw_msg)
     except Exception as exc:
-        transient_tokens = ("429", "RESOURCE_EXHAUSTED", "503", "UNAVAILABLE")
-        if (
-            not custom_chat_model
-            and resolved_settings.provider in {"gemini", "google"}
-            and any(tok in str(exc) for tok in transient_tokens)
-        ):
-            last_fb_exc: Exception = exc
-            raw_output = ""
-            fallback_candidates = [
-                m for m in GEMINI_FALLBACK_CHAIN if m != used_model_name
-            ]
-            for fb_name in fallback_candidates:
-                logger.warning("%s hit 429/503; trying fallback %s.", used_model_name, fb_name)
-                try:
-                    fallback_settings = LLMSettings(
-                        provider=resolved_settings.provider,
-                        model=fb_name,
-                        api_key=resolved_settings.api_key,
-                        base_url=resolved_settings.base_url,
-                        timeout=resolved_settings.timeout,
-                    )
-                    fallback_model = build_chat_model(fallback_settings)
-                    raw_msg = (prompt | fallback_model).invoke(prompt_inputs)
-                    raw_output = _extract_message_text(raw_msg)
-                    used_model_name = fb_name
-                    break
-                except Exception as fb_exc:
-                    last_fb_exc = fb_exc
-                    used_model_name = fb_name
-                    if not any(tok in str(fb_exc) for tok in transient_tokens):
-                        break
-            if not raw_output:
-                logger.warning("LangChain reranker fallback failed: %s", last_fb_exc)
-                return build_fallback_ranking(
-                    ml_top_3=ml_top_3,
-                    ai_status="unavailable",
-                    ai_message=_safe_llm_error_summary(last_fb_exc),
-                    provider=resolved_settings.provider,
-                    model=used_model_name,
-                )
-        else:
-            logger.warning("LangChain reranker call failed: %s", exc)
-            return build_fallback_ranking(
-                ml_top_3=ml_top_3,
-                ai_status="unavailable",
-                ai_message=_safe_llm_error_summary(exc),
-                provider=resolved_settings.provider,
-                model=used_model_name,
-            )
+        # A 429 can mean a model-specific daily or minute quota. Trying other
+        # models consumes more quota and obscures the failure of this model.
+        logger.warning("LangChain reranker %s failed: %s", used_model_name, _safe_llm_error_summary(exc))
+        return build_fallback_ranking(
+            ml_top_3=ml_top_3,
+            ai_status="unavailable",
+            ai_message=_safe_llm_error_summary(exc),
+            provider=resolved_settings.provider,
+            model=used_model_name,
+        )
 
     try:
         json_text = _extract_json_payload(raw_output)

@@ -24,14 +24,6 @@ DEFAULT_KB_PATH = Path(__file__).resolve().parent.parent / "data" / "farming.jso
 DEFAULT_CHAT_MODEL = "gemini-3.5-flash-lite"
 MIN_RELEVANCE_SCORE = 0.11
 
-GEMINI_CHAT_FALLBACK_CHAIN = (
-    "gemini-3.5-flash-lite",
-    "gemini-3.8-flash",
-    "gemini-3.6-flash",
-    "gemini-3.5-flash",
-    "gemini-2.5-flash",
-)
-
 SYSTEM_PROMPT = """You are "Sheti Mitra", a helpful, practical farming assistant.
 Answer the farmer's question using the 3 retrieved farming notes provided below.
 
@@ -188,12 +180,11 @@ def _unavailable_message(
         if language == "mr":
             return (
                 f"{top_note.title_mr}: {top_note.content_mr}\n\n"
-                "(टीप: स्थानिक .env मध्ये GEMINI_API_KEY नसल्यामुळे थेट अधिकृत नोंद दाखवली आहे.)"
+                "(AI सेवा सध्या उपलब्ध नाही. संबंधित शेती नोंद दाखवली आहे.)"
             )
-        note_hint = f" ({reason})" if reason else ""
         return (
             f"{top_note.title_en}: {top_note.content_en}\n\n"
-            f"(Offline note summary{note_hint}: add GEMINI_API_KEY in .env for Gemini 2.5 Flash synthesis.)"
+            "(AI service is temporarily unavailable. Showing the relevant farming note.)"
         )
 
     if language == "mr":
@@ -243,7 +234,6 @@ def answer_farming_question(
         for note, score in retrieved
     ]
 
-    custom_chat_model = chat_model is not None
     model_name = DEFAULT_CHAT_MODEL
     api_key = ""
     if chat_model is None:
@@ -292,48 +282,18 @@ def answer_farming_question(
         raw_content = _extract_message_text(ai_msg)
         parsed = GeminiChatPayload.model_validate_json(_extract_json(raw_content))
     except Exception as exc:
-        transient_tokens = ("429", "RESOURCE_EXHAUSTED", "503", "UNAVAILABLE")
-        if (
-            not custom_chat_model
-            and api_key
-            and any(tok in str(exc) for tok in transient_tokens)
-        ):
-            last_fb_exc: Exception = exc
-            parsed = None
-            for fb_name in [m for m in GEMINI_CHAT_FALLBACK_CHAIN if m != model_name]:
-                logger.warning("Sheti Mitra %s hit 429/503; trying %s.", model_name, fb_name)
-                try:
-                    fb_model = _build_gemini_chat_model(api_key=api_key, model_name=fb_name)
-                    ai_msg = fb_model.invoke(messages)
-                    raw_content = _extract_message_text(ai_msg)
-                    parsed = GeminiChatPayload.model_validate_json(_extract_json(raw_content))
-                    break
-                except (ValidationError, ValueError, Exception) as fb_exc:
-                    last_fb_exc = fb_exc
-                    if not any(tok in str(fb_exc) for tok in transient_tokens):
-                        break
-            if parsed is None:
-                logger.warning("Sheti Mitra fallback failed: %s", last_fb_exc)
-                return ChatResponse(
-                    question=question.strip(),
-                    language=language,
-                    answer=_unavailable_message(language, retrieved[0][0], type(last_fb_exc).__name__),
-                    covered=True,
-                    sources=all_sources,
-                    status="unavailable",
-                    message=f"Gemini chat call failed ({type(last_fb_exc).__name__}).",
-                )
-        else:
-            logger.warning("Sheti Mitra Gemini call failed: %s", exc)
-            return ChatResponse(
-                question=question.strip(),
-                language=language,
-                answer=_unavailable_message(language, retrieved[0][0], type(exc).__name__),
-                covered=True,
-                sources=all_sources,
-                status="unavailable",
-                message=f"Gemini chat call failed ({type(exc).__name__}).",
-            )
+        # Retrying different models on a quota error spends more of the same
+        # project's quota and makes it harder to identify the failing model.
+        logger.warning("Sheti Mitra %s failed (%s)", model_name, type(exc).__name__)
+        return ChatResponse(
+            question=question.strip(),
+            language=language,
+            answer=_unavailable_message(language, retrieved[0][0]),
+            covered=True,
+            sources=all_sources,
+            status="unavailable",
+            message=f"Gemini chat call failed ({type(exc).__name__}).",
+        )
 
     if not parsed.covered:
         return ChatResponse(
