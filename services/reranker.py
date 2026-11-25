@@ -182,6 +182,7 @@ def build_chat_model(settings: LLMSettings) -> BaseChatModel:
             google_api_key=settings.api_key,
             temperature=0,
             timeout=settings.timeout,
+            max_retries=1,
         )
 
     raise RerankerUnavailableError(f"Unsupported LLM provider: {provider}")
@@ -241,6 +242,23 @@ def _extract_json_payload(raw_text: str) -> str:
     if start != -1 and end != -1 and end > start:
         return text[start : end + 1]
     return text
+
+
+def _safe_llm_error_summary(exc: Exception) -> str:
+    """Summarize an LLM provider failure safely without exposing secrets."""
+    exc_name = type(exc).__name__
+    status_code = getattr(exc, "code", None) or getattr(exc, "status_code", None)
+    raw_msg = str(exc)
+    if "429" in raw_msg or "RESOURCE_EXHAUSTED" in raw_msg or status_code == 429:
+        return "AI reranking quota or rate limit exceeded (HTTP 429). Showing the original ML top 3."
+    if "401" in raw_msg or "403" in raw_msg or "API_KEY_INVALID" in raw_msg or "API key not valid" in raw_msg:
+        return "AI reranking failed due to invalid or unauthorized server API key. Showing the original ML top 3."
+    if "404" in raw_msg or "NOT_FOUND" in raw_msg or status_code == 404:
+        return "AI reranking model was not found for the configured provider (HTTP 404). Showing the original ML top 3."
+    if "timeout" in raw_msg.lower() or "timed out" in raw_msg.lower():
+        return "AI reranking request timed out. Showing the original ML top 3."
+    code_part = f" (status {status_code})" if status_code else ""
+    return f"AI reranking service failed ({exc_name}{code_part}). Showing the original ML top 3."
 
 
 def build_fallback_ranking(
@@ -337,9 +355,7 @@ def rerank_with_langchain(
         return build_fallback_ranking(
             ml_top_3=ml_top_3,
             ai_status="unavailable",
-            ai_message=(
-                "AI reranking service failed or timed out. Showing the original ML top 3."
-            ),
+            ai_message=_safe_llm_error_summary(exc),
             provider=resolved_settings.provider,
             model=resolved_settings.model,
         )

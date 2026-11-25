@@ -675,6 +675,15 @@ def test_llm_response_with_crop_outside_shortlist_is_rejected():
     assert inc_outcome.ai_status == "invalid_response"
     assert [r.crop for r in inc_outcome.final_ranking] == [c.crop for c in ml_top_3]
 
+    def raise_quota(_prompt_text: str) -> str:
+        raise RuntimeError("429 RESOURCE_EXHAUSTED: quota exceeded")
+
+    quota_llm = RecordingFakeChatModel(response_payload=raise_quota)
+    quota_outcome = rerank_with_langchain(soil, ml_top_3, wx, chat_model=quota_llm)
+    assert quota_outcome.ai_status == "unavailable"
+    assert "429" in quota_outcome.ai_message
+    assert [r.crop for r in quota_outcome.final_ranking] == [c.crop for c in ml_top_3]
+
 
 def test_dry_forecast_explanation_uses_supplied_rainfall_figures():
     """Dry 15-day forecast supplies exact rainfall figures and grounds explanation without forcing a winner."""
