@@ -94,9 +94,9 @@ def load_llm_settings() -> LLMSettings:
     base_url = os.getenv("LLM_BASE_URL", "").strip() or None
 
     try:
-        timeout = float(os.getenv("LLM_TIMEOUT_SECONDS", "20.0"))
+        timeout = float(os.getenv("LLM_TIMEOUT_SECONDS", "45.0"))
     except ValueError:
-        timeout = 20.0
+        timeout = 45.0
 
     if not provider:
         if os.getenv("OPENAI_API_KEY"):
@@ -177,13 +177,18 @@ def build_chat_model(settings: LLMSettings) -> BaseChatModel:
     if provider in {"gemini", "google"}:
         from langchain_google_genai import ChatGoogleGenerativeAI
 
-        return ChatGoogleGenerativeAI(
-            model=model_name,
-            google_api_key=settings.api_key,
-            temperature=0,
-            timeout=settings.timeout,
-            max_retries=1,
-        )
+        gemini_kwargs: dict[str, Any] = {
+            "model": model_name,
+            "google_api_key": settings.api_key,
+            "temperature": 0,
+            "timeout": settings.timeout,
+            "max_retries": 2,
+            "response_mime_type": "application/json",
+        }
+        if "2.5" in model_name:
+            # Disable hidden thinking tokens so JSON reranking completes in ~1-2s.
+            gemini_kwargs["thinking_budget"] = 0
+        return ChatGoogleGenerativeAI(**gemini_kwargs)
 
     raise RerankerUnavailableError(f"Unsupported LLM provider: {provider}")
 

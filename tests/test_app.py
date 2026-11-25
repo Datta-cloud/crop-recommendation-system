@@ -685,6 +685,24 @@ def test_llm_response_with_crop_outside_shortlist_is_rejected():
     assert [r.crop for r in quota_outcome.final_ranking] == [c.crop for c in ml_top_3]
 
 
+def test_build_chat_model_gemini_defaults(monkeypatch):
+    """Gemini settings disable 2.5 thinking overhead and request JSON output."""
+    from services.reranker import build_chat_model, load_llm_settings
+
+    monkeypatch.setenv("GEMINI_API_KEY", "dummy-gemini-key")
+    monkeypatch.delenv("LLM_PROVIDER", raising=False)
+    monkeypatch.delenv("LLM_MODEL", raising=False)
+    settings = load_llm_settings()
+    assert settings.provider == "gemini"
+    assert settings.model == "gemini-2.5-flash"
+    assert settings.timeout == 45.0
+
+    chat_model = build_chat_model(settings)
+    assert chat_model.thinking_budget == 0
+    assert chat_model.response_mime_type == "application/json"
+    assert chat_model.max_retries == 2
+
+
 def test_dry_forecast_explanation_uses_supplied_rainfall_figures():
     """Dry 15-day forecast supplies exact rainfall figures and grounds explanation without forcing a winner."""
     with open(BASE_DIR / "crop_model.pkl", "rb") as f:
