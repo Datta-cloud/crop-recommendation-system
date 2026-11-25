@@ -506,6 +506,45 @@ def test_visual_crossing_15_day_forecast_and_fallback(monkeypatch):
     assert fallback_summary.days_covered == 15
     assert fallback_summary.total_rainfall_mm == 0.0
 
+    def vc_401_then_weatherapi_handler(request: httpx.Request) -> httpx.Response:
+        if "visualcrossing.com" in str(request.url):
+            return httpx.Response(401, json={"error": "invalid key for visual crossing"})
+        if "weatherapi.com" in str(request.url):
+            return httpx.Response(
+                200,
+                json={
+                    "current": {
+                        "last_updated": "2026-12-01 12:00",
+                        "temp_c": 30.5,
+                        "humidity": 42,
+                        "precip_mm": 0.0,
+                        "condition": {"text": "Sunny"},
+                    },
+                    "forecast": {
+                        "forecastday": [
+                            {
+                                "date": f"2026-12-0{i + 1}",
+                                "day": {
+                                    "mintemp_c": 18.0,
+                                    "maxtemp_c": 31.0,
+                                    "totalprecip_mm": 2.0 if i == 1 else 0.0,
+                                    "daily_chance_of_rain": 35 if i == 1 else 5,
+                                    "condition": {"text": "Patchy rain" if i == 1 else "Sunny"},
+                                },
+                            }
+                            for i in range(3)
+                        ]
+                    },
+                },
+            )
+        raise AssertionError(f"Unexpected call: {request.url}")
+
+    wa_client = httpx.Client(transport=httpx.MockTransport(vc_401_then_weatherapi_handler))
+    wa_summary = fetch_weather_forecast(pune, forecast_days=15, client=wa_client)
+    assert wa_summary.days_covered == 3
+    assert wa_summary.is_partial_forecast is True
+    assert wa_summary.total_rainfall_mm == pytest.approx(2.0)
+
 
 def test_llm_response_with_crop_outside_shortlist_is_rejected():
     """LLM responses inventing non-shortlist, duplicate, or incomplete crops are rejected."""

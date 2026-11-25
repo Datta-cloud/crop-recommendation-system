@@ -23,6 +23,7 @@ FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
 VISUAL_CROSSING_URL = (
     "https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline"
 )
+WEATHERAPI_URL = "https://api.weatherapi.com/v1/forecast.json"
 
 DEFAULT_HEADERS = {
     "User-Agent": "CropRecommendationSystem/2.0 (https://github.com/Datta-cloud/crop-recommendation-system)"
@@ -122,9 +123,15 @@ def _get_json_with_retry(
             status_code = getattr(getattr(exc, "response", None), "status_code", None)
             logger.warning("Weather API error on %s (status=%s): %s", url, status_code, exc)
             if attempt >= attempts - 1:
-                raise WeatherUnavailableError(
-                    "Weather forecast service is currently unavailable."
-                ) from exc
+                if status_code == 429:
+                    detail = "Weather forecast service rate-limited the host (HTTP 429)."
+                elif status_code in {401, 403}:
+                    detail = f"Weather forecast API rejected credentials (HTTP {status_code})."
+                elif status_code is not None:
+                    detail = f"Weather forecast service returned HTTP {status_code}."
+                else:
+                    detail = f"Weather forecast service is unavailable ({type(exc).__name__})."
+                raise WeatherUnavailableError(detail) from exc
 
     raise WeatherUnavailableError("Weather forecast service is currently unavailable.") from last_exc
 
@@ -367,6 +374,72 @@ def _fetch_visual_crossing_forecast(
     return _build_weather_summary(location, current_weather, daily_items, forecast_days)
 
 
+def _fetch_weatherapi_forecast(
+    location: SelectedLocation,
+    api_key: str,
+    forecast_days: int,
+    timeout: float,
+    client: httpx.Client | None = None,
+) -> WeatherSummary:
+    params = {
+        "key": api_key,
+        "q": f"{location.latitude},{location.longitude}",
+        "days": min(forecast_days, 14),
+        "aqi": "no",
+        "alerts": "no",
+    }
+
+    payload = _get_json_with_retry(
+        WEATHERAPI_URL, params=params, timeout=timeout, client=client
+    )
+
+    current_raw = payload.get("current") or {}
+    current_weather: CurrentWeather | None = None
+    if current_raw and current_raw.get("temp_c") is not None:
+        cond_text = (current_raw.get("condition") or {}).get("text") or "Current"
+        humidity_val = current_raw.get("humidity")
+        precip_val = current_raw.get("precip_mm")
+        current_weather = CurrentWeather(
+            observed_at=current_raw.get("last_updated"),
+            temperature_c=round(float(current_raw["temp_c"]), 1),
+            humidity_pct=round(float(humidity_val), 1)
+            if humidity_val is not None
+            else None,
+            precipitation_mm=round(max(0.0, float(precip_val or 0.0)), 2),
+            weather_code=None,
+            condition=str(cond_text),
+        )
+
+    forecast_days_raw = (payload.get("forecast") or {}).get("forecastday") or []
+    daily_items: list[DailyForecast] = []
+    for entry in forecast_days_raw[:forecast_days]:
+        date_str = entry.get("date")
+        day = entry.get("day") or {}
+        t_min = day.get("mintemp_c")
+        t_max = day.get("maxtemp_c")
+        if date_str is None or t_min is None or t_max is None:
+            continue
+
+        rain_val = day.get("totalprecip_mm")
+        prob_val = day.get("daily_chance_of_rain")
+        cond_text = (day.get("condition") or {}).get("text") or "Forecast"
+        daily_items.append(
+            DailyForecast(
+                date=str(date_str),
+                temp_min_c=round(float(t_min), 1),
+                temp_max_c=round(float(t_max), 1),
+                rainfall_mm=round(max(0.0, float(rain_val or 0.0)), 2),
+                rain_probability_pct=int(round(float(prob_val)))
+                if prob_val is not None
+                else None,
+                weather_code=None,
+                condition=str(cond_text),
+            )
+        )
+
+    return _build_weather_summary(location, current_weather, daily_items, forecast_days)
+
+
 def fetch_weather_forecast(
     location: SelectedLocation,
     forecast_days: int = 15,
@@ -375,26 +448,49 @@ def fetch_weather_forecast(
 ) -> WeatherSummary:
     """Fetch current weather and up to 15 days of forecast for coordinates.
 
-    Uses Visual Crossing when WEATHER_API_KEY (or VISUAL_CROSSING_API_KEY) is
-    configured—avoiding shared datacenter IP rate limits on Render—and falls back
-    to Open-Meteo when no key is set or if the keyed provider fails.
+    Uses Visual Crossing (or WeatherAPI.com if a WeatherAPI key is supplied) when
+    WEATHER_API_KEY is configured, and falls back to Open-Meteo when unset or on error.
     """
     weather_api_key = (
         os.getenv("WEATHER_API_KEY", "").strip()
         or os.getenv("VISUAL_CROSSING_API_KEY", "").strip()
     )
+    provider_pref = os.getenv("WEATHER_PROVIDER", "").strip().lower()
 
     if weather_api_key:
-        try:
-            return _fetch_visual_crossing_forecast(
-                location=location,
-                api_key=weather_api_key,
-                forecast_days=forecast_days,
-                timeout=timeout,
-                client=client,
-            )
-        except WeatherServiceError as exc:
-            logger.warning("Visual Crossing failed, falling back to Open-Meteo: %s", exc)
+        if provider_pref == "weatherapi":
+            try:
+                return _fetch_weatherapi_forecast(
+                    location=location,
+                    api_key=weather_api_key,
+                    forecast_days=forecast_days,
+                    timeout=timeout,
+                    client=client,
+                )
+            except WeatherServiceError as exc:
+                logger.warning("WeatherAPI failed, falling back to Open-Meteo: %s", exc)
+        else:
+            try:
+                return _fetch_visual_crossing_forecast(
+                    location=location,
+                    api_key=weather_api_key,
+                    forecast_days=forecast_days,
+                    timeout=timeout,
+                    client=client,
+                )
+            except WeatherServiceError as exc:
+                logger.warning("Visual Crossing failed, trying WeatherAPI/Open-Meteo: %s", exc)
+                if "HTTP 401" in str(exc) or "HTTP 403" in str(exc):
+                    try:
+                        return _fetch_weatherapi_forecast(
+                            location=location,
+                            api_key=weather_api_key,
+                            forecast_days=forecast_days,
+                            timeout=timeout,
+                            client=client,
+                        )
+                    except WeatherServiceError as wa_exc:
+                        logger.warning("WeatherAPI fallback also failed: %s", wa_exc)
 
     try:
         return _fetch_open_meteo_forecast(

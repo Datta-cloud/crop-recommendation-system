@@ -76,11 +76,9 @@ def generate_recommendation(
             weather_message = (
                 "Weather forecast request timed out. Showing the original ML top 3."
             )
-        except weather_service.WeatherUnavailableError:
+        except weather_service.WeatherUnavailableError as exc:
             weather_status = "unavailable"
-            weather_message = (
-                "Weather forecast service is currently unavailable. Showing the original ML top 3."
-            )
+            weather_message = f"{exc} Showing the original ML top 3."
     elif weather_status == "skipped":
         weather_message = (
             "No location selected; weather forecast was not fetched. Showing the original ML top 3."
