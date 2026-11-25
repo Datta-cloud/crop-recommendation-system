@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import re
+import time
 from typing import Any
 
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -287,6 +288,8 @@ def _safe_llm_error_summary(exc: Exception) -> str:
         return "AI reranking request timed out. Showing the original ML top 3."
     if status_code == 504 or "504" in raw_msg:
         return "AI reranking provider timed out (HTTP 504). Showing the original ML top 3."
+    if status_code == 503 or "503" in raw_msg:
+        return "Gemini is temporarily unavailable (HTTP 503). Showing the original ML top 3."
     code_part = f" (status {status_code})" if status_code else ""
     return f"AI reranking service failed ({exc_name}{code_part}). Showing the original ML top 3."
 
@@ -384,20 +387,25 @@ def rerank_with_langchain(
         "format_instructions": parser.get_format_instructions(),
     }
 
-    try:
-        raw_msg = (prompt | chat_model).invoke(prompt_inputs)
-        raw_output = _extract_message_text(raw_msg)
-    except Exception as exc:
-        # A 429 can mean a model-specific daily or minute quota. Trying other
-        # models consumes more quota and obscures the failure of this model.
-        logger.warning("LangChain reranker %s failed: %s", used_model_name, _safe_llm_error_summary(exc))
-        return build_fallback_ranking(
-            ml_top_3=ml_top_3,
-            ai_status="unavailable",
-            ai_message=_safe_llm_error_summary(exc),
-            provider=resolved_settings.provider,
-            model=used_model_name,
-        )
+    for attempt in range(2):
+        try:
+            raw_msg = (prompt | chat_model).invoke(prompt_inputs)
+            raw_output = _extract_message_text(raw_msg)
+            break
+        except Exception as exc:
+            status = getattr(exc, "code", None) or getattr(exc, "status_code", None)
+            overloaded = status == 503 or "503" in str(exc)
+            if attempt == 0 and resolved_settings.provider in {"gemini", "google"} and overloaded:
+                time.sleep(0.6)
+                continue
+            logger.warning("LangChain reranker %s failed: %s", used_model_name, _safe_llm_error_summary(exc))
+            return build_fallback_ranking(
+                ml_top_3=ml_top_3,
+                ai_status="unavailable",
+                ai_message=_safe_llm_error_summary(exc),
+                provider=resolved_settings.provider,
+                model=used_model_name,
+            )
 
     try:
         json_text = _extract_json_payload(raw_output)
