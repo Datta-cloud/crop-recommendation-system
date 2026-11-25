@@ -766,6 +766,48 @@ def test_gemini_quota_failure_does_not_try_other_models(monkeypatch):
     assert chat_attempts == ["gemini-3.5-flash-lite"]
 
 
+def test_gemini_503_gets_one_short_retry(monkeypatch):
+    """Retry temporary overload once, while leaving the same shortlist and model in place."""
+    from services.ml_service import load_ml_artifacts, predict_top_k
+
+    model, crop_names = load_ml_artifacts(BASE_DIR / "crop_model.pkl", BASE_DIR / "crop_names.pkl")
+    soil = SoilClimateInput(**{key: float(value) for key, value in RICE_FORM.items()})
+    top_three = predict_top_k(model, crop_names, soil)
+    weather = _make_weather_summary(SelectedLocation(name="Pune", latitude=18.52, longitude=73.86), [0.0] * 11)
+    attempts = []
+    monkeypatch.setattr("services.reranker.time.sleep", lambda seconds: attempts.append(("sleep", seconds)))
+
+    def overloaded(_prompt):
+        attempts.append("call")
+        raise RuntimeError("503 model overloaded")
+
+    settings = LLMSettings(provider="gemini", model="gemini-3.5-flash-lite", api_key="dummy", base_url=None)
+    result = rerank_with_langchain(soil, top_three, weather, chat_model=RecordingFakeChatModel(response_payload=overloaded), settings=settings)
+    assert attempts == ["call", ("sleep", 0.6), "call"]
+    assert result.ai_status == "unavailable"
+    assert "503" in result.ai_message
+    assert [crop.crop for crop in result.final_ranking] == [crop.crop for crop in top_three]
+
+    attempts.clear()
+
+    def recovered(_prompt):
+        attempts.append("call")
+        if attempts.count("call") == 1:
+            raise RuntimeError("503 model overloaded")
+        return json.dumps({
+            "ranked_crops": [
+                {"crop": crop.crop, "final_rank": crop.ml_rank, "reason": "The 11-day dry forecast provides no basis to change this ML rank."}
+                for crop in top_three
+            ],
+            "order_changed": False,
+            "order_change_explanation": "The supplied 11-day forecast is dry, so the original order remains.",
+        })
+
+    result = rerank_with_langchain(soil, top_three, weather, chat_model=RecordingFakeChatModel(response_payload=recovered), settings=settings)
+    assert attempts == ["call", ("sleep", 0.6), "call"]
+    assert result.ai_status == "ok"
+
+
 def test_sheti_mitra_english_marathi_and_out_of_kb(monkeypatch):
     """Sheti Mitra answers English and Marathi farming questions and rejects out-of-KB queries."""
     monkeypatch.setenv("GEMINI_API_KEY", "dummy-gemini-key")
