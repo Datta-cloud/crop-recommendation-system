@@ -708,6 +708,47 @@ def test_build_chat_model_gemini_defaults(monkeypatch):
     assert chat_25.max_retries == 1
 
 
+def test_gemini_quota_failure_does_not_try_other_models(monkeypatch):
+    """A model quota failure must not consume the same project's other model quotas."""
+    from services.ml_service import load_ml_artifacts, predict_top_k
+    from services.rag_chat import ShetiMitraRAG, answer_farming_question
+
+    model, crop_names = load_ml_artifacts(BASE_DIR / "crop_model.pkl", BASE_DIR / "crop_names.pkl")
+    soil = SoilClimateInput(**{key: float(value) for key, value in RICE_FORM.items()})
+    top_three = predict_top_k(model, crop_names, soil)
+    location = SelectedLocation(name="Pune", latitude=18.51957, longitude=73.85535)
+    weather = _make_weather_summary(location, [0.0] * 11)
+    attempts = []
+
+    def quota_error(_prompt):
+        raise RuntimeError("429 RESOURCE_EXHAUSTED")
+
+    def fake_model(settings):
+        attempts.append(settings.model)
+        return RecordingFakeChatModel(response_payload=quota_error)
+
+    monkeypatch.setattr("services.reranker.build_chat_model", fake_model)
+    settings = LLMSettings(provider="gemini", model="gemini-3.5-flash-lite", api_key="dummy", base_url=None)
+    result = rerank_with_langchain(soil, top_three, weather, settings=settings)
+    assert result.ai_status == "unavailable"
+    assert result.model == "gemini-3.5-flash-lite"
+    assert attempts == ["gemini-3.5-flash-lite"]
+
+    chat_attempts = []
+
+    def fake_chat_model(api_key, model_name):
+        chat_attempts.append(model_name)
+        return RecordingFakeChatModel(response_payload=quota_error)
+
+    monkeypatch.setenv("GEMINI_API_KEY", "dummy")
+    monkeypatch.setattr("services.rag_chat._build_gemini_chat_model", fake_chat_model)
+    rag = ShetiMitraRAG.from_json(BASE_DIR / "data" / "farming.json")
+    chat = answer_farming_question(rag, "What is a Soil Health Card?", "en")
+    assert chat.status == "unavailable"
+    assert "add GEMINI_API_KEY" not in chat.answer
+    assert chat_attempts == ["gemini-3.5-flash-lite"]
+
+
 def test_sheti_mitra_english_marathi_and_out_of_kb(monkeypatch):
     """Sheti Mitra answers English and Marathi farming questions and rejects out-of-KB queries."""
     monkeypatch.setenv("GEMINI_API_KEY", "dummy-gemini-key")
