@@ -3,12 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>🌾 Crop Recommendation System</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <title>Crop Recommendation System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
-    /* =============================================
-       COLORS & THEME VARIABLES
-       ============================================= */
     :root {
       --green-deep: #1a3d2b;
       --green-mid:  #2e6b46;
@@ -16,14 +13,16 @@
       --green-light:#a8d5b5;
       --cream:      #f9f4ec;
       --amber:      #e8a838;
+      --amber-soft: #fff8e8;
       --white:      #ffffff;
       --text-dark:  #1c1c1c;
       --text-muted: #5a6a5e;
+      --border:     #dde8df;
+      --error-bg:   #fdf0ef;
+      --error-line: #d9534f;
+      --error-text: #8c1d18;
     }
 
-    /* =============================================
-       RESET & BASE
-       ============================================= */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
@@ -32,29 +31,26 @@
       color: var(--text-dark);
       min-height: 100vh;
       overflow-x: hidden;
+      line-height: 1.5;
     }
 
-    /* =============================================
-       HERO HEADER
-       ============================================= */
     .hero {
       background: var(--green-deep);
-      padding: 60px 24px 80px;
+      padding: 48px 20px 76px;
       text-align: center;
       position: relative;
       overflow: hidden;
     }
 
-    /* Decorative circles */
     .hero::before, .hero::after {
       content: '';
       position: absolute;
       border-radius: 50%;
-      opacity: 0.07;
+      opacity: 0.08;
       background: var(--green-soft);
     }
-    .hero::before { width: 400px; height: 400px; top: -180px; left: -100px; }
-    .hero::after  { width: 300px; height: 300px; bottom: -150px; right: -80px; }
+    .hero::before { width: 380px; height: 380px; top: -180px; left: -100px; }
+    .hero::after  { width: 280px; height: 280px; bottom: -140px; right: -80px; }
 
     .hero-tag {
       display: inline-block;
@@ -62,39 +58,35 @@
       color: var(--green-deep);
       font-size: 11px;
       font-weight: 700;
-      letter-spacing: 2px;
+      letter-spacing: 1.8px;
       text-transform: uppercase;
       padding: 5px 14px;
       border-radius: 20px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
 
     .hero h1 {
       font-family: 'Playfair Display', serif;
-      font-size: clamp(2rem, 5vw, 3.6rem);
+      font-size: clamp(2rem, 5vw, 3.3rem);
       font-weight: 900;
       color: var(--white);
       line-height: 1.15;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     .hero h1 span { color: var(--green-light); }
 
     .hero p {
-      color: rgba(255,255,255,0.65);
-      font-size: 1rem;
-      max-width: 480px;
+      color: rgba(255,255,255,0.75);
+      font-size: 0.98rem;
+      max-width: 600px;
       margin: 0 auto;
-      line-height: 1.7;
     }
 
-    /* =============================================
-       MAIN CARD
-       ============================================= */
     .container {
-      max-width: 760px;
-      margin: -40px auto 60px;
-      padding: 0 20px;
+      max-width: 1080px;
+      margin: -40px auto 56px;
+      padding: 0 16px;
       position: relative;
       z-index: 2;
     }
@@ -102,18 +94,15 @@
     .card {
       background: var(--white);
       border-radius: 20px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.10);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.09);
       overflow: hidden;
     }
 
-    /* =============================================
-       HOW IT WORKS BAR
-       ============================================= */
     .how-it-works {
       background: linear-gradient(135deg, var(--green-mid), var(--green-deep));
-      padding: 22px 32px;
+      padding: 18px 24px;
       display: flex;
-      gap: 28px;
+      gap: 20px;
       flex-wrap: wrap;
       align-items: center;
       justify-content: center;
@@ -123,68 +112,54 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      color: rgba(255,255,255,0.9);
-      font-size: 0.82rem;
+      color: rgba(255,255,255,0.92);
+      font-size: 0.84rem;
       font-weight: 500;
     }
 
     .step-num {
-      width: 28px; height: 28px;
+      width: 26px; height: 26px;
       border-radius: 50%;
-      background: rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.14);
       border: 1.5px solid rgba(255,255,255,0.4);
       display: grid;
       place-items: center;
       font-size: 0.75rem;
       font-weight: 700;
-      flex-shrink: 0;
       color: var(--amber);
+      flex-shrink: 0;
     }
 
-    /* =============================================
-       FORM AREA
-       ============================================= */
     .form-area {
-      padding: 36px 32px;
+      padding: 32px;
     }
 
     .section-label {
-      font-size: 0.7rem;
+      font-size: 0.72rem;
       font-weight: 700;
-      letter-spacing: 2px;
+      letter-spacing: 1.8px;
       text-transform: uppercase;
       color: var(--green-mid);
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
     .section-label::after {
       content: '';
       flex: 1;
       height: 1px;
       background: var(--green-light);
-      opacity: 0.5;
+      opacity: 0.55;
     }
 
-    /* Grid: 3 columns on big screen, 2 on medium, 1 on small */
     .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
     .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
-    .grid-1 { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 28px; }
 
-    @media (max-width: 600px) {
-      .grid-3, .grid-2 { grid-template-columns: 1fr 1fr; }
-      .form-area { padding: 24px 20px; }
-    }
-    @media (max-width: 400px) {
-      .grid-3, .grid-2 { grid-template-columns: 1fr; }
-    }
-
-    /* Individual input field */
     .field label {
       display: block;
-      font-size: 0.78rem;
-      font-weight: 500;
+      font-size: 0.8rem;
+      font-weight: 600;
       color: var(--text-muted);
       margin-bottom: 6px;
     }
@@ -192,9 +167,9 @@
     .field input {
       width: 100%;
       padding: 11px 14px;
-      border: 1.5px solid #dde8df;
+      border: 1.5px solid var(--border);
       border-radius: 10px;
-      font-size: 0.92rem;
+      font-size: 0.94rem;
       font-family: 'DM Sans', sans-serif;
       color: var(--text-dark);
       background: #f8fbf8;
@@ -204,22 +179,158 @@
 
     .field input:focus {
       border-color: var(--green-soft);
-      box-shadow: 0 0 0 3px rgba(76,175,80,0.12);
+      box-shadow: 0 0 0 3px rgba(76,175,80,0.14);
       background: var(--white);
     }
 
+    .field.has-error input {
+      border-color: var(--error-line);
+      background: #fff9f9;
+    }
+
     .field .hint {
-      font-size: 0.7rem;
-      color: #9aab9d;
+      font-size: 0.72rem;
+      color: #7c8d80;
       margin-top: 4px;
     }
 
-    /* =============================================
-       SUBMIT BUTTON
-       ============================================= */
+    .field-error {
+      font-size: 0.78rem;
+      color: var(--error-text);
+      font-weight: 500;
+      margin-top: 5px;
+    }
+
+    .error-banner {
+      margin-bottom: 20px;
+      padding: 14px 16px;
+      background: var(--error-bg);
+      border: 1.5px solid var(--error-line);
+      border-radius: 12px;
+      color: var(--error-text);
+      font-size: 0.9rem;
+    }
+
+    /* Location Lookup */
+    .location-box {
+      background: #f7faf7;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 24px;
+    }
+
+    .location-search-row {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .location-search-row input {
+      flex: 1;
+      padding: 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.94rem;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--white);
+      outline: none;
+    }
+
+    .location-search-row input:focus {
+      border-color: var(--green-soft);
+      box-shadow: 0 0 0 3px rgba(76,175,80,0.12);
+    }
+
+    .btn-secondary {
+      padding: 11px 18px;
+      border-radius: 10px;
+      border: 1.5px solid var(--green-mid);
+      background: var(--white);
+      color: var(--green-deep);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .btn-secondary:hover {
+      background: var(--green-mid);
+      color: var(--white);
+    }
+
+    .location-note {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    .selected-pill {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 12px;
+      padding: 10px 14px;
+      background: #e9f6ec;
+      border: 1.5px solid var(--green-soft);
+      border-radius: 10px;
+      font-size: 0.86rem;
+      color: var(--green-deep);
+    }
+
+    .btn-clear {
+      border: none;
+      background: transparent;
+      color: var(--error-text);
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.82rem;
+      text-decoration: underline;
+    }
+
+    .location-results {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .location-option {
+      width: 100%;
+      text-align: left;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--white);
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .location-option:hover {
+      border-color: var(--green-soft);
+      background: #f2faf3;
+    }
+
+    .location-option strong {
+      display: block;
+      font-size: 0.9rem;
+      color: var(--green-deep);
+    }
+
+    .location-option span {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
     .btn-submit {
       width: 100%;
-      padding: 16px;
+      padding: 15px;
       background: var(--green-deep);
       color: var(--white);
       border: none;
@@ -227,7 +338,7 @@
       font-family: 'DM Sans', sans-serif;
       font-size: 1rem;
       font-weight: 600;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.4px;
       cursor: pointer;
       transition: background 0.2s, transform 0.1s;
     }
@@ -235,172 +346,714 @@
     .btn-submit:hover  { background: var(--green-mid); }
     .btn-submit:active { transform: scale(0.99); }
 
-    /* =============================================
-       RESULT BOX
-       ============================================= */
-    .result-box {
-      margin: 0 32px 32px;
-      padding: 28px;
-      background: linear-gradient(135deg, #eaf6ec, #d4edda);
+    /* Results Area */
+    .results-section {
+      padding: 0 32px 32px;
+      border-top: 1px solid #edf2ed;
+      padding-top: 28px;
+      background: #fcfdfc;
+    }
+
+    .status-notice {
+      padding: 12px 16px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      font-size: 0.88rem;
+      background: var(--amber-soft);
+      border: 1.5px solid #e6b85c;
+      color: #6b4c0e;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+    }
+
+    .top-crop-card {
+      background: linear-gradient(135deg, #eaf6ec, #d7efdd);
       border: 2px solid var(--green-soft);
       border-radius: 16px;
-      text-align: center;
-      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      padding: 22px;
+      margin-bottom: 18px;
     }
 
-    @keyframes popIn {
-      from { opacity: 0; transform: scale(0.92) translateY(10px); }
-      to   { opacity: 1; transform: scale(1) translateY(0); }
-    }
-
-    .result-icon {
-      font-size: 3rem;
-      margin-bottom: 10px;
-      display: block;
-    }
-
-    .result-label {
-      font-size: 0.72rem;
+    .badge {
+      display: inline-block;
+      font-size: 0.7rem;
       font-weight: 700;
-      letter-spacing: 2px;
+      letter-spacing: 1.2px;
       text-transform: uppercase;
-      color: var(--green-mid);
-      margin-bottom: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: var(--green-deep);
+      color: var(--white);
+      margin-bottom: 10px;
+    }
+
+    .badge.amber {
+      background: var(--amber);
+      color: var(--green-deep);
     }
 
     .result-crop {
       font-family: 'Playfair Display', serif;
-      font-size: 2rem;
+      font-size: clamp(1.8rem, 3.6vw, 2.4rem);
       font-weight: 900;
       color: var(--green-deep);
-      letter-spacing: 1px;
+      line-height: 1.15;
     }
 
-    .result-note {
-      margin-top: 10px;
+    .top-crop-meta {
+      margin-top: 8px;
+      font-size: 0.86rem;
+      color: var(--green-mid);
+      font-weight: 600;
+    }
+
+    .why-box {
+      background: #f8fbf8;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+
+    .why-box h3 {
+      font-size: 0.95rem;
+      color: var(--green-deep);
+      margin-bottom: 8px;
+    }
+
+    .why-box p {
+      font-size: 0.9rem;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+    }
+
+    .why-box p:last-child {
+      margin-bottom: 0;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .panel-title {
       font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 1.3px;
+      text-transform: uppercase;
+      color: var(--green-mid);
+      margin-bottom: 12px;
+    }
+
+    /* Comparison table & mobile stacked cards */
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    table.compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    .compare-table th,
+    .compare-table td {
+      text-align: left;
+      padding: 10px 8px;
+      border-bottom: 1px solid #edf2ed;
+      vertical-align: top;
+    }
+
+    .compare-table th {
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
       color: var(--text-muted);
     }
 
-    .error-box {
-      margin: 0 32px 24px;
-      padding: 14px 18px;
-      background: #fdf0ef;
-      border: 1.5px solid #e57373;
-      border-radius: 12px;
-      color: #8c1d18;
-      font-size: 0.88rem;
-      text-align: center;
+    .crop-name-cell {
+      font-weight: 700;
+      color: var(--green-deep);
+      text-transform: capitalize;
     }
 
-    /* =============================================
-       FOOTER
-       ============================================= */
+    .crop-reason-line {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 400;
+      margin-top: 4px;
+    }
+
+    .rank-pill {
+      display: inline-block;
+      min-width: 28px;
+      text-align: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      background: #edf5ef;
+      color: var(--green-deep);
+    }
+
+    .rank-pill.winner {
+      background: var(--green-deep);
+      color: var(--white);
+    }
+
+    /* Weather side panel */
+    .weather-loc {
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: var(--green-deep);
+    }
+
+    .weather-coords {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .weather-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .stat-box {
+      background: #f7faf7;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .stat-value {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--green-deep);
+      margin-top: 2px;
+    }
+
+    .partial-note {
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: var(--amber-soft);
+      border: 1px solid #e6b85c;
+      color: #6b4c0e;
+      font-size: 0.82rem;
+      margin-bottom: 12px;
+    }
+
+    .forecast-scroll {
+      max-height: 360px;
+      overflow-y: auto;
+      border: 1px solid #edf2ed;
+      border-radius: 10px;
+    }
+
+    table.forecast-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    .forecast-table th,
+    .forecast-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #f0f4f0;
+      text-align: left;
+    }
+
+    .forecast-table th {
+      position: sticky;
+      top: 0;
+      background: #f5f9f6;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .separate-note {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-top: 10px;
+    }
+
     .footer {
       text-align: center;
-      padding: 24px;
+      padding: 20px;
       font-size: 0.78rem;
-      color: #9aab9d;
+      color: #7c8d80;
       border-top: 1px solid #edf1ed;
+    }
+
+    @media (max-width: 860px) {
+      .results-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .form-area { padding: 22px 16px; }
+      .results-section { padding: 22px 16px; }
+      .grid-3, .grid-2 { grid-template-columns: 1fr; }
+      .location-search-row { flex-direction: column; }
+      .weather-stats { grid-template-columns: 1fr; }
+      .how-it-works { padding: 14px 16px; gap: 10px; justify-content: flex-start; }
     }
   </style>
 </head>
 <body>
 
-  <!-- ====== HERO ====== -->
   <div class="hero">
-    <div class="hero-tag">🤖 ML-Powered</div>
+    <div class="hero-tag">FastAPI · Random Forest · 15-Day Weather · LangChain</div>
     <h1>Crop <span>Recommendation</span><br/>System</h1>
-    <p>Enter your soil and climate data — our machine learning model will suggest the best crop to grow.</p>
+    <p>Enter your soil nutrients and climate inputs, optionally select a location for 15-day weather context, and compare the top 3 ML crops.</p>
   </div>
 
-  <!-- ====== MAIN CARD ====== -->
   <div class="container">
     <div class="card">
 
-      <!-- How it works -->
       <div class="how-it-works">
-        <div class="step"><div class="step-num">1</div> Enter soil & climate data</div>
-        <div class="step"><div class="step-num">2</div> ML model analyses it</div>
-        <div class="step"><div class="step-num">3</div> Get crop recommendation</div>
+        <div class="step"><div class="step-num">1</div> Enter soil &amp; climate values</div>
+        <div class="step"><div class="step-num">2</div> Top 3 Random Forest shortlist</div>
+        <div class="step"><div class="step-num">3</div> 15-day weather &amp; AI review</div>
       </div>
 
-      <!-- FORM -->
-      <form class="form-area" action="/predict" method="POST">
+      <form class="form-area" action="/predict" method="POST" novalidate>
+        {% if field_errors %}
+        <div class="error-banner" role="alert">
+          Please fix the highlighted fields below before running the recommendation.
+        </div>
+        {% endif %}
 
-        <!-- Soil Nutrients -->
-        <div class="section-label">🧪 Soil Nutrients (kg/ha)</div>
+        <div class="section-label">Soil Nutrients (kg/ha)</div>
         <div class="grid-3">
-          <div class="field">
-            <label>Nitrogen (N)</label>
-            <input type="number" name="Nitrogen" placeholder="e.g. 90" min="0" max="200" step="0.1" value="{{ form_data.get('Nitrogen', '') if form_data else '' }}" required/>
-            <div class="hint">Range: 0 – 140</div>
+          <div class="field {% if field_errors.get('Nitrogen') %}has-error{% endif %}">
+            <label for="Nitrogen">Nitrogen (N)</label>
+            <input id="Nitrogen" type="number" name="Nitrogen" placeholder="e.g. 90" min="0" max="200" step="any" value="{{ form_data.get('Nitrogen', '') }}" required/>
+            <div class="hint">Allowed: 0 – 200 (dataset: 0 – 140)</div>
+            {% if field_errors.get('Nitrogen') %}<div class="field-error">{{ field_errors['Nitrogen'] }}</div>{% endif %}
           </div>
-          <div class="field">
-            <label>Phosphorus (P)</label>
-            <input type="number" name="Phosphorus" placeholder="e.g. 42" min="0" max="200" step="0.1" value="{{ form_data.get('Phosphorus', '') if form_data else '' }}" required/>
-            <div class="hint">Range: 5 – 145</div>
+          <div class="field {% if field_errors.get('Phosphorus') %}has-error{% endif %}">
+            <label for="Phosphorus">Phosphorus (P)</label>
+            <input id="Phosphorus" type="number" name="Phosphorus" placeholder="e.g. 42" min="0" max="200" step="any" value="{{ form_data.get('Phosphorus', '') }}" required/>
+            <div class="hint">Allowed: 0 – 200 (dataset: 5 – 145)</div>
+            {% if field_errors.get('Phosphorus') %}<div class="field-error">{{ field_errors['Phosphorus'] }}</div>{% endif %}
           </div>
-          <div class="field">
-            <label>Potassium (K)</label>
-            <input type="number" name="Potassium" placeholder="e.g. 43" min="0" max="205" step="0.1" value="{{ form_data.get('Potassium', '') if form_data else '' }}" required/>
-            <div class="hint">Range: 5 – 205</div>
+          <div class="field {% if field_errors.get('Potassium') %}has-error{% endif %}">
+            <label for="Potassium">Potassium (K)</label>
+            <input id="Potassium" type="number" name="Potassium" placeholder="e.g. 43" min="0" max="205" step="any" value="{{ form_data.get('Potassium', '') }}" required/>
+            <div class="hint">Allowed: 0 – 205 (dataset: 5 – 205)</div>
+            {% if field_errors.get('Potassium') %}<div class="field-error">{{ field_errors['Potassium'] }}</div>{% endif %}
           </div>
         </div>
 
-        <!-- Climate -->
-        <div class="section-label">🌤️ Climate Conditions</div>
+        <div class="section-label">Climate Inputs (Used by ML Model)</div>
         <div class="grid-2">
-          <div class="field">
-            <label>Temperature (°C)</label>
-            <input type="number" name="Temperature" placeholder="e.g. 25" min="0" max="60" step="0.1" value="{{ form_data.get('Temperature', '') if form_data else '' }}" required/>
-            <div class="hint">Range: 8 – 44 °C</div>
+          <div class="field {% if field_errors.get('Temperature') %}has-error{% endif %}">
+            <label for="Temperature">Temperature (°C)</label>
+            <input id="Temperature" type="number" name="Temperature" placeholder="e.g. 20.88" min="-10" max="60" step="any" value="{{ form_data.get('Temperature', '') }}" required/>
+            <div class="hint">Allowed: -10 – 60 °C (dataset: 8.8 – 43.7 °C)</div>
+            {% if field_errors.get('Temperature') %}<div class="field-error">{{ field_errors['Temperature'] }}</div>{% endif %}
           </div>
-          <div class="field">
-            <label>Humidity (%)</label>
-            <input type="number" name="Humidity" placeholder="e.g. 80" min="0" max="100" step="0.1" value="{{ form_data.get('Humidity', '') if form_data else '' }}" required/>
-            <div class="hint">Range: 14 – 100 %</div>
+          <div class="field {% if field_errors.get('Humidity') %}has-error{% endif %}">
+            <label for="Humidity">Humidity (%)</label>
+            <input id="Humidity" type="number" name="Humidity" placeholder="e.g. 82" min="0" max="100" step="any" value="{{ form_data.get('Humidity', '') }}" required/>
+            <div class="hint">Allowed: 0 – 100 % (dataset: 14.3 – 100 %)</div>
+            {% if field_errors.get('Humidity') %}<div class="field-error">{{ field_errors['Humidity'] }}</div>{% endif %}
           </div>
         </div>
 
-        <!-- Soil Properties -->
-        <div class="section-label">🌱 Soil Properties</div>
+        <div class="section-label">Soil pH &amp; Model Rainfall</div>
         <div class="grid-2">
-          <div class="field">
-            <label>Soil pH</label>
-            <input type="number" name="pH" placeholder="e.g. 6.5" min="0" max="14" step="0.01" value="{{ form_data.get('pH', '') if form_data else '' }}" required/>
-            <div class="hint">Range: 3.5 – 9.9</div>
+          <div class="field {% if field_errors.get('pH') %}has-error{% endif %}">
+            <label for="pH">Soil pH</label>
+            <input id="pH" type="number" name="pH" placeholder="e.g. 6.5" min="0" max="14" step="any" value="{{ form_data.get('pH', '') }}" required/>
+            <div class="hint">Allowed: 0 – 14 (dataset: 3.5 – 9.9)</div>
+            {% if field_errors.get('pH') %}<div class="field-error">{{ field_errors['pH'] }}</div>{% endif %}
           </div>
-          <div class="field">
-            <label>Rainfall (mm)</label>
-            <input type="number" name="Rainfall" placeholder="e.g. 200" min="0" max="300" step="0.1" value="{{ form_data.get('Rainfall', '') if form_data else '' }}" required/>
-            <div class="hint">Range: 20 – 300 mm</div>
+          <div class="field {% if field_errors.get('Rainfall') %}has-error{% endif %}">
+            <label for="Rainfall">Model Rainfall (mm)</label>
+            <input id="Rainfall" type="number" name="Rainfall" placeholder="e.g. 202.94" min="0" max="500" step="any" value="{{ form_data.get('Rainfall', '') }}" required/>
+            <div class="hint">Kept separate from 15-day forecast rainfall</div>
+            {% if field_errors.get('Rainfall') %}<div class="field-error">{{ field_errors['Rainfall'] }}</div>{% endif %}
           </div>
         </div>
 
-        <button type="submit" class="btn-submit">🌾 Recommend Best Crop</button>
+        <div class="section-label">Location for 15-Day Weather Context (Optional)</div>
+        <div class="location-box">
+          <div class="location-search-row">
+            <input
+              type="text"
+              id="locationQuery"
+              name="location_query"
+              placeholder="Search village, town, or city (e.g. Pune, Aurangabad, Springfield)"
+              value="{{ form_data.get('location_query', '') }}"
+            />
+            <button type="button" id="searchLocationBtn" class="btn-secondary">Search Location</button>
+          </div>
+          <div class="location-note">
+            Select a matching location with its district/state and country to fetch current weather and a 15-day forecast. Your manually entered climate values above are never overwritten.
+          </div>
+          {% if field_errors.get('location') %}
+          <div class="field-error">{{ field_errors['location'] }}</div>
+          {% endif %}
+
+          <input type="hidden" id="locationName" name="location_name" value="{{ form_data.get('location_name', '') }}"/>
+          <input type="hidden" id="locationDistrict" name="location_district" value="{{ form_data.get('location_district', '') }}"/>
+          <input type="hidden" id="locationState" name="location_state" value="{{ form_data.get('location_state', '') }}"/>
+          <input type="hidden" id="locationCountry" name="location_country" value="{{ form_data.get('location_country', '') }}"/>
+          <input type="hidden" id="locationDisplayName" name="location_display_name" value="{{ form_data.get('location_display_name', '') }}"/>
+          <input type="hidden" id="locationLat" name="latitude" value="{{ form_data.get('latitude', '') }}"/>
+          <input type="hidden" id="locationLon" name="longitude" value="{{ form_data.get('longitude', '') }}"/>
+
+          <div id="selectedLocationPill" class="selected-pill" style="{% if not form_data.get('latitude') %}display: none;{% endif %}">
+            <span id="selectedLocationText">
+              Selected: <strong>{{ form_data.get('location_display_name') or form_data.get('location_name', '') }}</strong>
+              {% if form_data.get('latitude') %}({{ form_data.get('latitude') }}, {{ form_data.get('longitude') }}){% endif %}
+            </span>
+            <button type="button" id="clearLocationBtn" class="btn-clear">Clear location</button>
+          </div>
+
+          <div id="locationSearchStatus" class="location-note" style="display: none;"></div>
+          <div id="locationResults" class="location-results">
+            {% if recommendation and recommendation.ambiguous_locations %}
+            {% for opt in recommendation.ambiguous_locations %}
+            <button
+              type="button"
+              class="location-option"
+              data-name="{{ opt.name }}"
+              data-district="{{ opt.district or '' }}"
+              data-state="{{ opt.state or '' }}"
+              data-country="{{ opt.country or '' }}"
+              data-display="{{ opt.display_name }}"
+              data-lat="{{ opt.latitude }}"
+              data-lon="{{ opt.longitude }}"
+            >
+              <strong>{{ opt.display_name }}</strong>
+              <span>District: {{ opt.district or 'N/A' }} · State: {{ opt.state or 'N/A' }} · Country: {{ opt.country or 'N/A' }} · ({{ "%.4f"|format(opt.latitude) }}, {{ "%.4f"|format(opt.longitude) }})</span>
+            </button>
+            {% endfor %}
+            {% endif %}
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit">Recommend Best Crop</button>
       </form>
 
-      {% if error %}
-      <div class="error-box">{{ error }}</div>
+      {% if recommendation %}
+      <section class="results-section" aria-label="Recommendation results">
+        {% if recommendation.weather_status != 'ok' or recommendation.ai_status != 'ok' %}
+        <div class="status-notice">
+          {% if recommendation.weather_status != 'ok' and recommendation.weather_message %}
+          <div><strong>Weather status:</strong> {{ recommendation.weather_message }}</div>
+          {% endif %}
+          {% if recommendation.ai_status != 'ok' and recommendation.ai_message %}
+          <div><strong>AI reranking status:</strong> {{ recommendation.ai_message }}</div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="results-grid">
+          <div>
+            {% set top_item = recommendation.final_ranking[0] %}
+            <div class="top-crop-card">
+              {% if recommendation.ai_status == 'ok' and recommendation.order_changed %}
+              <span class="badge amber">AI-Adjusted Top Crop</span>
+              {% elif recommendation.ai_status == 'ok' %}
+              <span class="badge">ML Ranking Retained</span>
+              {% else %}
+              <span class="badge">ML Top Recommendation</span>
+              {% endif %}
+              <div class="result-crop">{{ recommendation.recommended_crop | upper }}</div>
+              <div class="top-crop-meta">
+                Final rank #{{ top_item.final_rank }} · ML rank #{{ top_item.ml_rank }} · ML model score: {{ "%.2f"|format(top_item.ml_score_pct) }}%
+              </div>
+            </div>
+
+            <div class="why-box">
+              <h3>Why this crop?</h3>
+              <p>{{ recommendation.why_this_crop }}</p>
+              <p>{{ recommendation.order_change_explanation }}</p>
+            </div>
+
+            <div class="panel">
+              <div class="panel-title">Top 3 Shortlist Comparison</div>
+              <div class="table-wrap">
+                <table class="compare-table">
+                  <thead>
+                    <tr>
+                      <th>Crop</th>
+                      <th>ML rank</th>
+                      <th>ML model score</th>
+                      <th>Final rank</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for item in recommendation.final_ranking %}
+                    <tr>
+                      <td>
+                        <div class="crop-name-cell">{{ item.crop }}</div>
+                        <div class="crop-reason-line">{{ item.reason }}</div>
+                      </td>
+                      <td><span class="rank-pill">#{{ item.ml_rank }}</span></td>
+                      <td><strong>{{ "%.2f"|format(item.ml_score_pct) }}%</strong></td>
+                      <td><span class="rank-pill {% if item.final_rank == 1 %}winner{% endif %}">#{{ item.final_rank }}</span></td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <aside class="panel" aria-label="Weather summary">
+            <div class="panel-title">15-Day Weather Context</div>
+            {% if recommendation.weather %}
+            {% set wx = recommendation.weather %}
+            <div class="weather-loc">{{ wx.location.display_name }}</div>
+            <div class="weather-coords">
+              Coordinates: {{ "%.4f"|format(wx.location.latitude) }}, {{ "%.4f"|format(wx.location.longitude) }}
+            </div>
+
+            <div class="weather-stats">
+              {% if wx.current %}
+              <div class="stat-box">
+                <div class="stat-label">Current Weather</div>
+                <div class="stat-value">{{ wx.current.temperature_c }} °C · {{ wx.current.condition }}</div>
+              </div>
+              {% endif %}
+              <div class="stat-box">
+                <div class="stat-label">Days Covered</div>
+                <div class="stat-value">{{ wx.days_covered }} of {{ wx.days_requested }} days</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Total Forecast Rainfall</div>
+                <div class="stat-value">{{ "%.1f"|format(wx.total_rainfall_mm) }} mm</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Model Rainfall Input</div>
+                <div class="stat-value">{{ "%.1f"|format(recommendation.input_features["Rainfall"]) }} mm</div>
+              </div>
+            </div>
+
+            {% if wx.is_partial_forecast %}
+            <div class="partial-note">{{ wx.forecast_note }}</div>
+            {% endif %}
+
+            <div class="forecast-scroll">
+              <table class="forecast-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Min / Max</th>
+                    <th>Rainfall</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for day in wx.daily %}
+                  <tr>
+                    <td>{{ day.date }}</td>
+                    <td>{{ day.temp_min_c }}° / {{ day.temp_max_c }}°C</td>
+                    <td>{{ "%.1f"|format(day.rainfall_mm) }} mm</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            <div class="separate-note">
+              Near-term forecast ({{ wx.start_date }} to {{ wx.end_date }}) is used only for planting context and never alters your manual climate inputs.
+            </div>
+            {% else %}
+            <p class="location-note">
+              {{ recommendation.weather_message or "No forecast loaded." }}
+            </p>
+            <div class="weather-stats" style="margin-top: 12px;">
+              <div class="stat-box">
+                <div class="stat-label">Entered Temperature</div>
+                <div class="stat-value">{{ recommendation.input_features["Temperature"] }} °C</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Entered Humidity</div>
+                <div class="stat-value">{{ recommendation.input_features["Humidity"] }} %</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Model Rainfall Input</div>
+                <div class="stat-value">{{ recommendation.input_features["Rainfall"] }} mm</div>
+              </div>
+            </div>
+            {% endif %}
+          </aside>
+        </div>
+      </section>
       {% endif %}
 
-      <!-- ====== RESULT (only shown after prediction) ====== -->
-      {% if result %}
-      <div class="result-box">
-        <span class="result-icon">🎯</span>
-        <div class="result-label">Recommended Crop</div>
-        <div class="result-crop">{{ crop | upper }}</div>
-        <p class="result-note">Based on your soil nutrients and climate data, this is the best crop to grow.</p>
-      </div>
-      {% endif %}
-
-    </div><!-- end card -->
-  </div><!-- end container -->
-
-  <div class="footer">
-    Crop Recommendation System &nbsp;·&nbsp; Built with Flask &amp; scikit-learn
+    </div>
   </div>
 
+  <div class="footer">
+    Crop Recommendation System &nbsp;·&nbsp; FastAPI, scikit-learn, Open-Meteo &amp; LangChain
+  </div>
+
+  <script>
+    (function () {
+      const queryInput = document.getElementById("locationQuery");
+      const searchBtn = document.getElementById("searchLocationBtn");
+      const resultsBox = document.getElementById("locationResults");
+      const statusBox = document.getElementById("locationSearchStatus");
+      const selectedPill = document.getElementById("selectedLocationPill");
+      const selectedText = document.getElementById("selectedLocationText");
+      const clearBtn = document.getElementById("clearLocationBtn");
+
+      const fields = {
+        name: document.getElementById("locationName"),
+        district: document.getElementById("locationDistrict"),
+        state: document.getElementById("locationState"),
+        country: document.getElementById("locationCountry"),
+        display: document.getElementById("locationDisplayName"),
+        lat: document.getElementById("locationLat"),
+        lon: document.getElementById("locationLon"),
+      };
+
+      function selectOption(opt) {
+        fields.name.value = opt.name || "";
+        fields.district.value = opt.district || "";
+        fields.state.value = opt.state || "";
+        fields.country.value = opt.country || "";
+        fields.display.value = opt.display_name || opt.name || "";
+        fields.lat.value = String(opt.latitude);
+        fields.lon.value = String(opt.longitude);
+        queryInput.value = opt.name || "";
+
+        selectedText.textContent = "Selected: ";
+        const strong = document.createElement("strong");
+        strong.textContent = fields.display.value;
+        selectedText.appendChild(strong);
+        selectedText.appendChild(
+          document.createTextNode(
+            ` (${Number(opt.latitude).toFixed(4)}, ${Number(opt.longitude).toFixed(4)})`
+          )
+        );
+        selectedPill.style.display = "flex";
+        resultsBox.innerHTML = "";
+        statusBox.style.display = "none";
+      }
+
+      function clearSelection() {
+        Object.values(fields).forEach((el) => { el.value = ""; });
+        selectedPill.style.display = "none";
+      }
+
+      function bindStaticOptionButtons() {
+        resultsBox.querySelectorAll(".location-option").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            selectOption({
+              name: btn.dataset.name,
+              district: btn.dataset.district,
+              state: btn.dataset.state,
+              country: btn.dataset.country,
+              display_name: btn.dataset.display,
+              latitude: btn.dataset.lat,
+              longitude: btn.dataset.lon,
+            });
+          });
+        });
+      }
+
+      async function runLocationSearch() {
+        const q = queryInput.value.trim();
+        if (q.length < 2) {
+          statusBox.textContent = "Enter at least 2 characters to search.";
+          statusBox.style.display = "block";
+          resultsBox.innerHTML = "";
+          return;
+        }
+
+        statusBox.textContent = "Searching locations...";
+        statusBox.style.display = "block";
+        resultsBox.innerHTML = "";
+
+        try {
+          const resp = await fetch(`/api/locations?q=${encodeURIComponent(q)}`);
+          const data = await resp.json();
+          if (!resp.ok) {
+            statusBox.textContent = data.detail || "Location lookup failed.";
+            return;
+          }
+          if (!data.results || data.results.length === 0) {
+            statusBox.textContent = "No matching village, town, or city found.";
+            return;
+          }
+
+          statusBox.textContent =
+            data.results.length > 1
+              ? `Found ${data.results.length} matching locations. Choose the correct district/state and country:`
+              : "Found 1 matching location. Click to confirm:";
+
+          data.results.forEach((loc) => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "location-option";
+            const districtText = loc.district || "N/A";
+            const stateText = loc.state || "N/A";
+            const countryText = loc.country || "N/A";
+
+            const strong = document.createElement("strong");
+            strong.textContent = loc.display_name;
+            const span = document.createElement("span");
+            span.textContent =
+              `District: ${districtText} · State: ${stateText} · Country: ${countryText} · (${Number(loc.latitude).toFixed(4)}, ${Number(loc.longitude).toFixed(4)})`;
+
+            btn.appendChild(strong);
+            btn.appendChild(span);
+            btn.addEventListener("click", () => selectOption(loc));
+            resultsBox.appendChild(btn);
+          });
+        } catch (err) {
+          statusBox.textContent = "Unable to reach location search right now.";
+        }
+      }
+
+      queryInput.addEventListener("input", () => {
+        if (fields.lat.value) {
+          clearSelection();
+        }
+      });
+
+      queryInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          runLocationSearch();
+        }
+      });
+
+      searchBtn.addEventListener("click", runLocationSearch);
+      clearBtn.addEventListener("click", () => {
+        queryInput.value = "";
+        clearSelection();
+      });
+
+      bindStaticOptionButtons();
+    })();
+  </script>
 </body>
 </html>

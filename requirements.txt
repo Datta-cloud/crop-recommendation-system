@@ -1,5 +1,15 @@
-flask
+fastapi
+uvicorn[standard]
+jinja2
+python-multipart
+pydantic
+httpx
+python-dotenv
 numpy
 pandas
 scikit-learn
-gunicorn
+langchain-core
+langchain-openai
+langchain-groq
+langchain-google-genai
+pytest
