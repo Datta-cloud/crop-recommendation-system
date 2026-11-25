@@ -122,7 +122,14 @@ def _get_json_with_retry(
         except (httpx.HTTPError, ValueError) as exc:
             last_exc = exc
             status_code = getattr(getattr(exc, "response", None), "status_code", None)
-            logger.warning("Weather API error on %s (status=%s): %s", url, status_code, exc)
+            # httpx exception strings can contain the full request URL, including
+            # API keys supplied as query parameters. Log only the endpoint and type.
+            logger.warning(
+                "Weather API error on %s (status=%s, error=%s)",
+                url,
+                status_code,
+                type(exc).__name__,
+            )
             if attempt >= attempts - 1:
                 if status_code == 429:
                     detail = "Weather forecast service rate-limited the host (HTTP 429)."
