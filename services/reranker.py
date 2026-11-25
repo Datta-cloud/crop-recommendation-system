@@ -6,14 +6,13 @@ from dataclasses import dataclass
 import json
 import logging
 import os
-import re
 import time
 from typing import Any
 
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from schemas import (
     LLMRerankOutput,
@@ -23,14 +22,23 @@ from schemas import (
     WeatherSummary,
     validate_rerank_against_shortlist,
 )
+from services.gemini_utils import (
+    OVERLOAD_FALLBACK_GEMINI_MODELS,
+    PRIMARY_GEMINI_MODEL,
+    build_gemini_chat_kwargs,
+    extract_json_payload as _extract_json_payload,
+    extract_message_text as _extract_message_text,
+    invoke_gemini_with_503_recovery,
+    is_overload_error,
+)
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_MODELS = {
     "openai": "gpt-4o-mini",
     "groq": "llama-3.3-70b-versatile",
-    "gemini": "gemini-3.5-flash-lite",
-    "google": "gemini-3.5-flash-lite",
+    "gemini": PRIMARY_GEMINI_MODEL,
+    "google": PRIMARY_GEMINI_MODEL,
     "openai_compatible": "gpt-4o-mini",
 }
 
@@ -183,19 +191,12 @@ def build_chat_model(settings: LLMSettings) -> BaseChatModel:
     if provider in {"gemini", "google"}:
         from langchain_google_genai import ChatGoogleGenerativeAI
 
-        gemini_kwargs: dict[str, Any] = {
-            "model": model_name,
-            "google_api_key": settings.api_key,
-            "timeout": settings.timeout,
-            "max_retries": 0,
-            "response_mime_type": "application/json",
-        }
-        if "2.5" in model_name:
-            # Disable hidden thinking tokens so JSON reranking completes in ~1-2s.
-            gemini_kwargs["thinking_budget"] = 0
-            gemini_kwargs["temperature"] = 0
-        elif not model_name.startswith("gemini-3"):
-            gemini_kwargs["temperature"] = 0
+        gemini_kwargs = build_gemini_chat_kwargs(
+            model_name=model_name,
+            api_key=settings.api_key,
+            timeout=settings.timeout,
+            temperature=0.0,
+        )
         return ChatGoogleGenerativeAI(**gemini_kwargs)
 
     raise RerankerUnavailableError(f"Unsupported LLM provider: {provider}")
@@ -243,36 +244,6 @@ def _format_weather_block(weather: WeatherSummary) -> str:
     return "\n".join(lines)
 
 
-def _extract_message_text(response: Any) -> str:
-    """Extract text cleanly whether LangChain returns an AIMessage, str, or content blocks."""
-    content = getattr(response, "content", response)
-    if isinstance(content, str):
-        return content
-    if isinstance(content, list):
-        parts: list[str] = []
-        for block in content:
-            if isinstance(block, str):
-                parts.append(block)
-            elif isinstance(block, dict) and "text" in block:
-                parts.append(str(block["text"]))
-        return "\n".join(parts)
-    return str(content)
-
-
-def _extract_json_payload(raw_text: str) -> str:
-    """Strip optional markdown code fences or locate outer JSON object."""
-    text = raw_text.strip()
-    fenced = re.search(r"```(?:json)?\s*(\{.*\})\s*```", text, flags=re.DOTALL)
-    if fenced:
-        return fenced.group(1).strip()
-
-    start = text.find("{")
-    end = text.rfind("}")
-    if start != -1 and end != -1 and end > start:
-        return text[start : end + 1]
-    return text
-
-
 def _safe_llm_error_summary(exc: Exception) -> str:
     """Summarize an LLM provider failure safely without exposing secrets."""
     exc_name = type(exc).__name__
@@ -288,7 +259,7 @@ def _safe_llm_error_summary(exc: Exception) -> str:
         return "AI reranking request timed out. Showing the original ML top 3."
     if status_code == 504 or "504" in raw_msg:
         return "AI reranking provider timed out (HTTP 504). Showing the original ML top 3."
-    if status_code == 503 or "503" in raw_msg:
+    if is_overload_error(exc):
         return "Gemini is temporarily unavailable (HTTP 503). Showing the original ML top 3."
     code_part = f" (status {status_code})" if status_code else ""
     return f"AI reranking service failed ({exc_name}{code_part}). Showing the original ML top 3."
@@ -343,6 +314,7 @@ def rerank_with_langchain(
     """Run LangChain prompt + Pydantic validation to evaluate near-term weather reranking."""
     resolved_settings = settings or load_llm_settings()
     used_model_name = resolved_settings.model
+    custom_chat_model = chat_model is not None
 
     if chat_model is None:
         try:
@@ -387,25 +359,47 @@ def rerank_with_langchain(
         "format_instructions": parser.get_format_instructions(),
     }
 
-    for attempt in range(2):
-        try:
-            raw_msg = (prompt | chat_model).invoke(prompt_inputs)
-            raw_output = _extract_message_text(raw_msg)
-            break
-        except Exception as exc:
-            status = getattr(exc, "code", None) or getattr(exc, "status_code", None)
-            overloaded = status == 503 or "503" in str(exc)
-            if attempt == 0 and resolved_settings.provider in {"gemini", "google"} and overloaded:
-                time.sleep(0.6)
-                continue
-            logger.warning("LangChain reranker %s failed: %s", used_model_name, _safe_llm_error_summary(exc))
-            return build_fallback_ranking(
-                ml_top_3=ml_top_3,
-                ai_status="unavailable",
-                ai_message=_safe_llm_error_summary(exc),
+    is_gemini = resolved_settings.provider in {"gemini", "google"}
+    allow_overload_fallback = (
+        not custom_chat_model
+        and is_gemini
+        and used_model_name == PRIMARY_GEMINI_MODEL
+    )
+
+    def _invoke_reranker(override_model: str | None) -> str:
+        active_model = chat_model
+        if override_model is not None:
+            fb_settings = LLMSettings(
                 provider=resolved_settings.provider,
-                model=used_model_name,
+                model=override_model,
+                api_key=resolved_settings.api_key,
+                base_url=resolved_settings.base_url,
+                timeout=max(resolved_settings.timeout, 14.0),
             )
+            active_model = build_chat_model(fb_settings)
+        raw_msg = (prompt | active_model).invoke(prompt_inputs)
+        return _extract_message_text(raw_msg)
+
+    try:
+        raw_output, used_model_name = invoke_gemini_with_503_recovery(
+            _invoke_reranker,
+            is_gemini=is_gemini,
+            primary_model=used_model_name,
+            allow_model_fallback=allow_overload_fallback,
+            fallback_models=OVERLOAD_FALLBACK_GEMINI_MODELS,
+            sleep_fn=time.sleep,
+            logger=logger,
+            context_label="LangChain reranker",
+        )
+    except Exception as exc:
+        logger.warning("LangChain reranker %s failed: %s", used_model_name, _safe_llm_error_summary(exc))
+        return build_fallback_ranking(
+            ml_top_3=ml_top_3,
+            ai_status="unavailable",
+            ai_message=_safe_llm_error_summary(exc),
+            provider=resolved_settings.provider,
+            model=used_model_name,
+        )
 
     try:
         json_text = _extract_json_payload(raw_output)
@@ -421,7 +415,7 @@ def rerank_with_langchain(
                 "non-shortlist crops) and was rejected. Showing the original ML top 3."
             ),
             provider=resolved_settings.provider,
-            model=resolved_settings.model,
+            model=used_model_name,
         )
 
     ml_lookup = {candidate.crop.lower(): candidate for candidate in ml_top_3}

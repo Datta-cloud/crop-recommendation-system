@@ -709,6 +709,7 @@ def test_build_chat_model_gemini_defaults(monkeypatch):
     monkeypatch.setenv("GEMINI_API_KEY", "dummy-gemini-key")
     monkeypatch.delenv("LLM_PROVIDER", raising=False)
     monkeypatch.delenv("LLM_MODEL", raising=False)
+    monkeypatch.delenv("LLM_TIMEOUT_SECONDS", raising=False)
     settings = load_llm_settings()
     assert settings.provider == "gemini"
     assert settings.model == "gemini-3.5-flash-lite"
@@ -717,6 +718,7 @@ def test_build_chat_model_gemini_defaults(monkeypatch):
     chat_model = build_chat_model(settings)
     assert chat_model.response_mime_type == "application/json"
     assert chat_model.max_retries == 0
+    assert chat_model.thinking_config == {"thinking_level": "minimal"}
 
     monkeypatch.setenv("LLM_MODEL", "gemini-2.5-flash")
     settings_25 = load_llm_settings()
@@ -766,9 +768,10 @@ def test_gemini_quota_failure_does_not_try_other_models(monkeypatch):
     assert chat_attempts == ["gemini-3.5-flash-lite"]
 
 
-def test_gemini_503_gets_one_short_retry(monkeypatch):
-    """Retry temporary overload once, while leaving the same shortlist and model in place."""
+def test_gemini_503_retries_and_overload_fallback(monkeypatch):
+    """Retry temporary 503 overload with backoff and fall back on 503-only without wasting 429 quota."""
     from services.ml_service import load_ml_artifacts, predict_top_k
+    from services.rag_chat import ShetiMitraRAG, answer_farming_question
 
     model, crop_names = load_ml_artifacts(BASE_DIR / "crop_model.pkl", BASE_DIR / "crop_names.pkl")
     soil = SoilClimateInput(**{key: float(value) for key, value in RICE_FORM.items()})
@@ -779,21 +782,21 @@ def test_gemini_503_gets_one_short_retry(monkeypatch):
 
     def overloaded(_prompt):
         attempts.append("call")
-        raise RuntimeError("503 model overloaded")
+        raise RuntimeError("503 UNAVAILABLE: model overloaded")
 
     settings = LLMSettings(provider="gemini", model="gemini-3.5-flash-lite", api_key="dummy", base_url=None)
     result = rerank_with_langchain(soil, top_three, weather, chat_model=RecordingFakeChatModel(response_payload=overloaded), settings=settings)
-    assert attempts == ["call", ("sleep", 0.6), "call"]
+    assert attempts == ["call", ("sleep", 0.6), "call", ("sleep", 1.2), "call", ("sleep", 2.0), "call"]
     assert result.ai_status == "unavailable"
     assert "503" in result.ai_message
     assert [crop.crop for crop in result.final_ranking] == [crop.crop for crop in top_three]
 
     attempts.clear()
 
-    def recovered(_prompt):
+    def recovered_on_third_try(_prompt):
         attempts.append("call")
-        if attempts.count("call") == 1:
-            raise RuntimeError("503 model overloaded")
+        if attempts.count("call") <= 2:
+            raise RuntimeError("503 UNAVAILABLE: high demand")
         return json.dumps({
             "ranked_crops": [
                 {"crop": crop.crop, "final_rank": crop.ml_rank, "reason": "The 11-day dry forecast provides no basis to change this ML rank."}
@@ -803,9 +806,55 @@ def test_gemini_503_gets_one_short_retry(monkeypatch):
             "order_change_explanation": "The supplied 11-day forecast is dry, so the original order remains.",
         })
 
-    result = rerank_with_langchain(soil, top_three, weather, chat_model=RecordingFakeChatModel(response_payload=recovered), settings=settings)
-    assert attempts == ["call", ("sleep", 0.6), "call"]
+    result = rerank_with_langchain(soil, top_three, weather, chat_model=RecordingFakeChatModel(response_payload=recovered_on_third_try), settings=settings)
+    assert attempts == ["call", ("sleep", 0.6), "call", ("sleep", 1.2), "call"]
     assert result.ai_status == "ok"
+
+    # When primary 3.5-flash-lite remains 503 after retries, reranker and Sheti Mitra fall back to 3.1-flash-lite.
+    model_sequence = []
+
+    def fake_build_model(build_settings):
+        model_sequence.append(build_settings.model)
+        if build_settings.model == "gemini-3.5-flash-lite":
+            return RecordingFakeChatModel(response_payload=overloaded)
+        return RecordingFakeChatModel(
+            response_payload=json.dumps({
+                "ranked_crops": [
+                    {"crop": crop.crop, "final_rank": crop.ml_rank, "reason": "The 11-day dry forecast supports retaining this ML rank."}
+                    for crop in top_three
+                ],
+                "order_changed": False,
+                "order_change_explanation": "The 11-day forecast has 0.0 mm rainfall, so the ML ranking holds.",
+            })
+        )
+
+    monkeypatch.setattr("services.reranker.build_chat_model", fake_build_model)
+    fb_result = rerank_with_langchain(soil, top_three, weather, settings=settings)
+    assert fb_result.ai_status == "ok"
+    assert fb_result.model == "gemini-3.1-flash-lite"
+    assert model_sequence == ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"]
+
+    chat_models = []
+    monkeypatch.setenv("GEMINI_API_KEY", "dummy")
+    monkeypatch.setattr("services.rag_chat.time.sleep", lambda _s: None)
+
+    def fake_chat_model(api_key, model_name):
+        chat_models.append(model_name)
+        if model_name == "gemini-3.5-flash-lite":
+            return RecordingFakeChatModel(response_payload=overloaded)
+        return RecordingFakeChatModel(
+            response_payload=json.dumps({
+                "covered": True,
+                "answer": "Collect 8 to 10 subsamples for a representative soil sample.",
+                "cited_note_ids": ["soil_01"],
+            })
+        )
+
+    monkeypatch.setattr("services.rag_chat._build_gemini_chat_model", fake_chat_model)
+    rag = ShetiMitraRAG.from_json(BASE_DIR / "data" / "farming.json")
+    chat_res = answer_farming_question(rag, "What is a Soil Health Card?", "en")
+    assert chat_res.status == "ok"
+    assert chat_models == ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"]
 
 
 def test_sheti_mitra_english_marathi_and_out_of_kb(monkeypatch):

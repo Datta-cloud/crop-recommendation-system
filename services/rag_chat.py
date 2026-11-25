@@ -7,21 +7,29 @@ import json
 import logging
 import os
 from pathlib import Path
-import re
+import time
 from typing import Any, Literal
 
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 from schemas import ChatResponse, ChatSource
+from services.gemini_utils import (
+    OVERLOAD_FALLBACK_GEMINI_MODELS,
+    PRIMARY_GEMINI_MODEL,
+    build_gemini_chat_kwargs,
+    extract_json_payload as _extract_json,
+    extract_message_text as _extract_message_text,
+    invoke_gemini_with_503_recovery,
+)
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_KB_PATH = Path(__file__).resolve().parent.parent / "data" / "farming.json"
-DEFAULT_CHAT_MODEL = "gemini-3.5-flash-lite"
+DEFAULT_CHAT_MODEL = PRIMARY_GEMINI_MODEL
 MIN_RELEVANCE_SCORE = 0.11
 
 SYSTEM_PROMPT = """You are "Sheti Mitra", a helpful, practical farming assistant.
@@ -114,48 +122,16 @@ class ShetiMitraRAG:
         return [(self.notes[idx], float(similarities[idx])) for idx in ranked_indices]
 
 
-def _extract_message_text(response: Any) -> str:
-    content = getattr(response, "content", response)
-    if isinstance(content, str):
-        return content
-    if isinstance(content, list):
-        parts: list[str] = []
-        for block in content:
-            if isinstance(block, str):
-                parts.append(block)
-            elif isinstance(block, dict) and "text" in block:
-                parts.append(str(block["text"]))
-        return "\n".join(parts)
-    return str(content)
-
-
-def _extract_json(raw_text: str) -> str:
-    text = raw_text.strip()
-    fenced = re.search(r"```(?:json)?\s*(\{.*\})\s*```", text, flags=re.DOTALL)
-    if fenced:
-        return fenced.group(1).strip()
-    start = text.find("{")
-    end = text.rfind("}")
-    if start != -1 and end != -1 and end > start:
-        return text[start : end + 1]
-    return text
-
-
 def _build_gemini_chat_model(api_key: str, model_name: str = DEFAULT_CHAT_MODEL) -> BaseChatModel:
     from langchain_google_genai import ChatGoogleGenerativeAI
 
-    kwargs: dict[str, Any] = {
-        "model": model_name,
-        "google_api_key": api_key,
-        "timeout": 30.0,
-        "max_retries": 1,
-        "response_mime_type": "application/json",
-    }
-    if "2.5" in model_name:
-        kwargs["thinking_budget"] = 0
-        kwargs["temperature"] = 0.2
-    elif not model_name.startswith("gemini-3"):
-        kwargs["temperature"] = 0.2
+    timeout = 14.0 if model_name != PRIMARY_GEMINI_MODEL else 15.0
+    kwargs = build_gemini_chat_kwargs(
+        model_name=model_name,
+        api_key=api_key,
+        timeout=timeout,
+        temperature=0.2,
+    )
     return ChatGoogleGenerativeAI(**kwargs)
 
 
@@ -234,6 +210,7 @@ def answer_farming_question(
         for note, score in retrieved
     ]
 
+    custom_chat_model = chat_model is not None
     model_name = DEFAULT_CHAT_MODEL
     api_key = ""
     if chat_model is None:
@@ -277,14 +254,34 @@ def answer_farming_question(
         ),
     ]
 
+    allow_overload_fallback = (
+        not custom_chat_model
+        and bool(api_key)
+        and model_name == PRIMARY_GEMINI_MODEL
+    )
+
+    def _invoke_chat(override_model: str | None) -> Any:
+        active_model = chat_model
+        if override_model is not None:
+            active_model = _build_gemini_chat_model(api_key=api_key, model_name=override_model)
+        return active_model.invoke(messages)
+
+    used_model = model_name
     try:
-        ai_msg = chat_model.invoke(messages)
+        ai_msg, used_model = invoke_gemini_with_503_recovery(
+            _invoke_chat,
+            is_gemini=True,
+            primary_model=model_name,
+            allow_model_fallback=allow_overload_fallback,
+            fallback_models=OVERLOAD_FALLBACK_GEMINI_MODELS,
+            sleep_fn=time.sleep,
+            logger=logger,
+            context_label="Sheti Mitra",
+        )
         raw_content = _extract_message_text(ai_msg)
         parsed = GeminiChatPayload.model_validate_json(_extract_json(raw_content))
     except Exception as exc:
-        # Retrying different models on a quota error spends more of the same
-        # project's quota and makes it harder to identify the failing model.
-        logger.warning("Sheti Mitra %s failed (%s)", model_name, type(exc).__name__)
+        logger.warning("Sheti Mitra %s failed (%s)", used_model, type(exc).__name__)
         return ChatResponse(
             question=question.strip(),
             language=language,
