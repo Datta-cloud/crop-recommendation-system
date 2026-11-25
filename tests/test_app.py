@@ -27,6 +27,8 @@ from schemas import (
 from services.reranker import LLMSettings, rerank_with_langchain
 from services.weather import (
     WeatherTimeoutError,
+    WeatherUnavailableError,
+    _get_json_with_retry,
     fetch_weather_forecast,
     search_locations,
 )
@@ -434,6 +436,21 @@ def test_search_locations_timeout_raises_typed_error():
     client = httpx.Client(transport=httpx.MockTransport(timeout_handler))
     with pytest.raises(WeatherTimeoutError):
         search_locations("Pune", client=client)
+
+
+def test_weather_failure_does_not_log_api_key(caplog):
+    """An HTTP error from a keyed provider never writes its query key to logs."""
+    secret = "private-weather-key"
+    client = httpx.Client(transport=httpx.MockTransport(lambda _: httpx.Response(401)))
+    with pytest.raises(WeatherUnavailableError):
+        _get_json_with_retry(
+            "https://example.com/forecast",
+            {"key": secret},
+            timeout=1.0,
+            client=client,
+        )
+    assert secret not in caplog.text
+    assert "status=401" in caplog.text
 
 
 def test_visual_crossing_15_day_forecast_and_fallback(monkeypatch):
