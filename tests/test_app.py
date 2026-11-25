@@ -686,7 +686,7 @@ def test_llm_response_with_crop_outside_shortlist_is_rejected():
 
 
 def test_build_chat_model_gemini_defaults(monkeypatch):
-    """Gemini settings disable 2.5 thinking overhead and request JSON output."""
+    """Gemini reranker defaults to 3.5 Flash-Lite (500 RPD) with JSON output and fast failover."""
     from services.reranker import build_chat_model, load_llm_settings
 
     monkeypatch.setenv("GEMINI_API_KEY", "dummy-gemini-key")
@@ -694,13 +694,18 @@ def test_build_chat_model_gemini_defaults(monkeypatch):
     monkeypatch.delenv("LLM_MODEL", raising=False)
     settings = load_llm_settings()
     assert settings.provider == "gemini"
-    assert settings.model == "gemini-2.5-flash"
+    assert settings.model == "gemini-3.5-flash-lite"
     assert settings.timeout == 45.0
 
     chat_model = build_chat_model(settings)
-    assert chat_model.thinking_budget == 0
     assert chat_model.response_mime_type == "application/json"
-    assert chat_model.max_retries == 2
+    assert chat_model.max_retries == 1
+
+    monkeypatch.setenv("LLM_MODEL", "gemini-2.5-flash")
+    settings_25 = load_llm_settings()
+    chat_25 = build_chat_model(settings_25)
+    assert chat_25.thinking_budget == 0
+    assert chat_25.max_retries == 1
 
 
 def test_sheti_mitra_english_marathi_and_out_of_kb(monkeypatch):

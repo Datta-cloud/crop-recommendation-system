@@ -28,10 +28,18 @@ logger = logging.getLogger(__name__)
 DEFAULT_MODELS = {
     "openai": "gpt-4o-mini",
     "groq": "llama-3.3-70b-versatile",
-    "gemini": "gemini-2.5-flash",
-    "google": "gemini-2.5-flash",
+    "gemini": "gemini-3.5-flash-lite",
+    "google": "gemini-3.5-flash-lite",
     "openai_compatible": "gpt-4o-mini",
 }
+
+GEMINI_FALLBACK_CHAIN = (
+    "gemini-3.5-flash-lite",
+    "gemini-3.8-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
+    "gemini-2.5-flash",
+)
 
 SYSTEM_PROMPT = """You are an agronomy decision assistant helping evaluate a machine-learning shortlist of 3 crops for a farmer's selected location.
 Your task is to evaluate whether the location's current weather, current date/sowing season, and near-term forecast (up to 15 days) mean the 3 ML candidate crops should be reordered right now.
@@ -186,7 +194,7 @@ def build_chat_model(settings: LLMSettings) -> BaseChatModel:
             "model": model_name,
             "google_api_key": settings.api_key,
             "timeout": settings.timeout,
-            "max_retries": 2,
+            "max_retries": 1,
             "response_mime_type": "application/json",
         }
         if "2.5" in model_name:
@@ -391,12 +399,14 @@ def rerank_with_langchain(
         if (
             not custom_chat_model
             and resolved_settings.provider in {"gemini", "google"}
-            and used_model_name == "gemini-2.5-flash"
             and any(tok in str(exc) for tok in transient_tokens)
         ):
             last_fb_exc: Exception = exc
             raw_output = ""
-            for fb_name in ("gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-3.6-flash"):
+            fallback_candidates = [
+                m for m in GEMINI_FALLBACK_CHAIN if m != used_model_name
+            ]
+            for fb_name in fallback_candidates:
                 logger.warning("%s hit 429/503; trying fallback %s.", used_model_name, fb_name)
                 try:
                     fallback_settings = LLMSettings(

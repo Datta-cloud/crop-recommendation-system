@@ -21,8 +21,16 @@ from schemas import ChatResponse, ChatSource
 logger = logging.getLogger(__name__)
 
 DEFAULT_KB_PATH = Path(__file__).resolve().parent.parent / "data" / "farming.json"
-DEFAULT_CHAT_MODEL = "gemini-2.5-flash"
+DEFAULT_CHAT_MODEL = "gemini-3.5-flash-lite"
 MIN_RELEVANCE_SCORE = 0.11
+
+GEMINI_CHAT_FALLBACK_CHAIN = (
+    "gemini-3.5-flash-lite",
+    "gemini-3.8-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
+    "gemini-2.5-flash",
+)
 
 SYSTEM_PROMPT = """You are "Sheti Mitra", a helpful, practical farming assistant.
 Answer the farmer's question using the 3 retrieved farming notes provided below.
@@ -148,7 +156,7 @@ def _build_gemini_chat_model(api_key: str, model_name: str = DEFAULT_CHAT_MODEL)
         "model": model_name,
         "google_api_key": api_key,
         "timeout": 30.0,
-        "max_retries": 2,
+        "max_retries": 1,
         "response_mime_type": "application/json",
     }
     if "2.5" in model_name:
@@ -288,12 +296,11 @@ def answer_farming_question(
         if (
             not custom_chat_model
             and api_key
-            and model_name == "gemini-2.5-flash"
             and any(tok in str(exc) for tok in transient_tokens)
         ):
             last_fb_exc: Exception = exc
             parsed = None
-            for fb_name in ("gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-3.6-flash"):
+            for fb_name in [m for m in GEMINI_CHAT_FALLBACK_CHAIN if m != model_name]:
                 logger.warning("Sheti Mitra %s hit 429/503; trying %s.", model_name, fb_name)
                 try:
                     fb_model = _build_gemini_chat_model(api_key=api_key, model_name=fb_name)

@@ -27,7 +27,7 @@ A machine learning and weather-aware web application built with **FastAPI**, **s
 
 5. **Sheti Mitra — Simple RAG Farming Chatbot**
    - Uses a bilingual English/Marathi knowledge base in `data/farming.json` (18 short notes covering soil testing, irrigation, sowing, and crop care with official source URLs such as MPKV Rahuri and the Soil Health Card portal).
-   - **Flow:** `Farmer Question → scikit-learn TF-IDF + Cosine Similarity (Top 3 Notes) → Gemini 2.5 Flash Answer + Official Source Links`
+   - **Flow:** `Farmer Question → scikit-learn TF-IDF + Cosine Similarity (Top 3 Notes) → Gemini Flash (gemini-3.5-flash-lite) Answer + Official Source Links`
    - `POST /api/chat` answers in simple English or Marathi using only the retrieved notes, shows official source links, and states honestly when a question is outside the notes.
    - Includes a **मराठी | English** switch in the top-right corner persisted in `localStorage`.
 
@@ -90,7 +90,7 @@ cp .env.example .env
 ```
 
 - **AI Reranking (`GEMINI_API_KEY` or other LLM provider):**
-  - `gemini`: set `GEMINI_API_KEY` (auto-detects `gemini` / `gemini-2.5-flash`, or override via `LLM_PROVIDER` and `LLM_MODEL`)
+  - `gemini`: set `GEMINI_API_KEY` (auto-detects `gemini` / `gemini-3.5-flash-lite` for high 500 RPD free-tier quota, with automatic fallback across Gemini Flash models; override via `LLM_PROVIDER` and `LLM_MODEL`)
   - `openai`: set `OPENAI_API_KEY` (`LLM_MODEL=gpt-4o-mini`)
   - `groq`: set `GROQ_API_KEY` (`LLM_MODEL=llama-3.3-70b-versatile`)
   - `openai_compatible`: set `LLM_PROVIDER=openai_compatible`, `LLM_BASE_URL`, `LLM_MODEL`, and `LLM_API_KEY`
