@@ -24,6 +24,7 @@ VISUAL_CROSSING_URL = (
     "https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline"
 )
 WEATHERAPI_URL = "https://api.weatherapi.com/v1/forecast.json"
+MET_NO_URL = "https://api.met.no/weatherapi/locationforecast/2.0/compact"
 
 DEFAULT_HEADERS = {
     "User-Agent": "CropRecommendationSystem/2.0 (https://github.com/Datta-cloud/crop-recommendation-system)"
@@ -440,6 +441,94 @@ def _fetch_weatherapi_forecast(
     return _build_weather_summary(location, current_weather, daily_items, forecast_days)
 
 
+def _fetch_met_no_forecast(
+    location: SelectedLocation,
+    forecast_days: int,
+    timeout: float,
+    client: httpx.Client | None = None,
+) -> WeatherSummary:
+    """Fetch up to ~10 days of global forecast from MET Norway (no API key required)."""
+    params = {
+        "lat": round(location.latitude, 4),
+        "lon": round(location.longitude, 4),
+    }
+
+    payload = _get_json_with_retry(MET_NO_URL, params=params, timeout=timeout, client=client)
+    timeseries = (payload.get("properties") or {}).get("timeseries") or []
+    if not timeseries:
+        raise WeatherUnavailableError("MET Norway returned empty timeseries.")
+
+    first_entry = timeseries[0]
+    first_data = first_entry.get("data") or {}
+    first_instant = first_data.get("instant", {}).get("details") or {}
+    first_next = first_data.get("next_1_hours") or first_data.get("next_6_hours") or {}
+    first_symbol = str((first_next.get("summary") or {}).get("symbol_code") or "Current")
+    current_weather: CurrentWeather | None = None
+    if first_instant.get("air_temperature") is not None:
+        current_weather = CurrentWeather(
+            observed_at=first_entry.get("time"),
+            temperature_c=round(float(first_instant["air_temperature"]), 1),
+            humidity_pct=round(float(first_instant["relative_humidity"]), 1)
+            if first_instant.get("relative_humidity") is not None
+            else None,
+            precipitation_mm=round(
+                max(
+                    0.0,
+                    float((first_next.get("details") or {}).get("precipitation_amount") or 0.0),
+                ),
+                2,
+            ),
+            weather_code=None,
+            condition=first_symbol.replace("_", " ").capitalize(),
+        )
+
+    grouped: dict[str, dict[str, object]] = {}
+    for entry in timeseries:
+        timestamp = str(entry.get("time") or "")
+        date_str = timestamp[:10]
+        if len(date_str) != 10:
+            continue
+
+        data = entry.get("data") or {}
+        details = (data.get("instant") or {}).get("details") or {}
+        temp = details.get("air_temperature")
+        if temp is None:
+            continue
+
+        # Prefer 1h blocks on hourly steps to avoid double-counting overlapping 6h blocks.
+        period = data.get("next_1_hours") or data.get("next_6_hours") or {}
+        precip = float((period.get("details") or {}).get("precipitation_amount") or 0.0)
+        symbol = str((period.get("summary") or {}).get("symbol_code") or "")
+
+        bucket = grouped.setdefault(
+            date_str,
+            {"temps": [], "rain": 0.0, "conditions": []},
+        )
+        bucket["temps"].append(float(temp))  # type: ignore[union-attr]
+        bucket["rain"] = float(bucket["rain"]) + max(0.0, precip)  # type: ignore[arg-type]
+        if symbol:
+            bucket["conditions"].append(symbol.replace("_", " ").capitalize())  # type: ignore[union-attr]
+
+    daily_items: list[DailyForecast] = []
+    for date_str in sorted(grouped.keys())[:forecast_days]:
+        bucket = grouped[date_str]
+        temps: list[float] = bucket["temps"]  # type: ignore[assignment]
+        conds: list[str] = bucket["conditions"]  # type: ignore[assignment]
+        daily_items.append(
+            DailyForecast(
+                date=date_str,
+                temp_min_c=round(min(temps), 1),
+                temp_max_c=round(max(temps), 1),
+                rainfall_mm=round(float(bucket["rain"]), 2),  # type: ignore[arg-type]
+                rain_probability_pct=None,
+                weather_code=None,
+                condition=conds[len(conds) // 2] if conds else "Forecast",
+            )
+        )
+
+    return _build_weather_summary(location, current_weather, daily_items, forecast_days)
+
+
 def fetch_weather_forecast(
     location: SelectedLocation,
     forecast_days: int = 15,
@@ -501,3 +590,11 @@ def fetch_weather_forecast(
         )
     except WeatherTimeoutError as exc:
         raise WeatherTimeoutError("Weather forecast request timed out.") from exc
+    except WeatherUnavailableError as exc:
+        logger.warning("Open-Meteo unavailable (%s); falling back to MET Norway.", exc)
+        return _fetch_met_no_forecast(
+            location=location,
+            forecast_days=forecast_days,
+            timeout=timeout,
+            client=client,
+        )

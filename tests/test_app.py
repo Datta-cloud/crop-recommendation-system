@@ -546,6 +546,60 @@ def test_visual_crossing_15_day_forecast_and_fallback(monkeypatch):
     assert wa_summary.total_rainfall_mm == pytest.approx(2.0)
 
 
+def test_open_meteo_429_falls_back_to_met_no_honestly(monkeypatch):
+    """When Open-Meteo returns 429 with no key, MET Norway provides partial multi-day forecast."""
+    monkeypatch.delenv("WEATHER_API_KEY", raising=False)
+    monkeypatch.delenv("VISUAL_CROSSING_API_KEY", raising=False)
+    pune = SelectedLocation(
+        name="Pune",
+        district="Pune",
+        state="Maharashtra",
+        country="India",
+        latitude=18.52,
+        longitude=73.86,
+    )
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if "open-meteo.com" in str(request.url):
+            return httpx.Response(429, json={"error": True, "reason": "rate limit"})
+        if "api.met.no" in str(request.url):
+            timeseries = []
+            for day in range(1, 10):
+                timeseries.append(
+                    {
+                        "time": f"2026-12-{day:02d}T06:00:00Z",
+                        "data": {
+                            "instant": {"details": {"air_temperature": 21.0, "relative_humidity": 48.0}},
+                            "next_1_hours": {
+                                "summary": {"symbol_code": "clearsky_day"},
+                                "details": {"precipitation_amount": 0.5 if day == 3 else 0.0},
+                            },
+                        },
+                    }
+                )
+                timeseries.append(
+                    {
+                        "time": f"2026-12-{day:02d}T12:00:00Z",
+                        "data": {
+                            "instant": {"details": {"air_temperature": 31.5, "relative_humidity": 34.0}},
+                            "next_6_hours": {
+                                "summary": {"symbol_code": "partlycloudy_day"},
+                                "details": {"precipitation_amount": 1.0 if day == 3 else 0.0},
+                            },
+                        },
+                    }
+                )
+            return httpx.Response(200, json={"properties": {"timeseries": timeseries}})
+        raise AssertionError(f"Unexpected host: {request.url}")
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    summary = fetch_weather_forecast(pune, forecast_days=15, client=client)
+    assert summary.days_covered == 9
+    assert summary.is_partial_forecast is True
+    assert summary.total_rainfall_mm == pytest.approx(1.5)
+    assert "9 of 15 requested days" in summary.forecast_note
+
+
 def test_llm_response_with_crop_outside_shortlist_is_rejected():
     """LLM responses inventing non-shortlist, duplicate, or incomplete crops are rejected."""
     with open(BASE_DIR / "crop_model.pkl", "rb") as f:
