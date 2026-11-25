@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Crop Recommendation System</title>
+  <title>Crop Recommendation System &amp; Sheti Mitra</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
     :root {
@@ -36,7 +36,7 @@
 
     .hero {
       background: var(--green-deep);
-      padding: 48px 20px 76px;
+      padding: 58px 20px 76px;
       text-align: center;
       position: relative;
       overflow: hidden;
@@ -48,9 +48,49 @@
       border-radius: 50%;
       opacity: 0.08;
       background: var(--green-soft);
+      pointer-events: none;
     }
     .hero::before { width: 380px; height: 380px; top: -180px; left: -100px; }
     .hero::after  { width: 280px; height: 280px; bottom: -140px; right: -80px; }
+
+    .lang-switch {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      z-index: 5;
+      display: inline-flex;
+      align-items: center;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 999px;
+      padding: 3px;
+      gap: 2px;
+      backdrop-filter: blur(4px);
+    }
+
+    .lang-btn {
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.86);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .lang-btn.active {
+      background: var(--amber);
+      color: var(--green-deep);
+    }
+
+    .lang-sep {
+      color: rgba(255,255,255,0.4);
+      font-size: 0.78rem;
+      user-select: none;
+    }
 
     .hero-tag {
       display: inline-block;
@@ -77,9 +117,9 @@
     .hero h1 span { color: var(--green-light); }
 
     .hero p {
-      color: rgba(255,255,255,0.75);
+      color: rgba(255,255,255,0.78);
       font-size: 0.98rem;
-      max-width: 600px;
+      max-width: 620px;
       margin: 0 auto;
     }
 
@@ -89,6 +129,8 @@
       padding: 0 16px;
       position: relative;
       z-index: 2;
+      display: grid;
+      gap: 24px;
     }
 
     .card {
@@ -137,7 +179,7 @@
     .section-label {
       font-size: 0.72rem;
       font-weight: 700;
-      letter-spacing: 1.8px;
+      letter-spacing: 1.6px;
       text-transform: uppercase;
       color: var(--green-mid);
       margin-bottom: 14px;
@@ -158,7 +200,7 @@
 
     .field label {
       display: block;
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       font-weight: 600;
       color: var(--text-muted);
       margin-bottom: 6px;
@@ -348,9 +390,8 @@
 
     /* Results Area */
     .results-section {
-      padding: 0 32px 32px;
+      padding: 28px 32px 32px;
       border-top: 1px solid #edf2ed;
-      padding-top: 28px;
       background: #fcfdfc;
     }
 
@@ -454,7 +495,6 @@
       margin-bottom: 12px;
     }
 
-    /* Comparison table & mobile stacked cards */
     .table-wrap {
       width: 100%;
       overflow-x: auto;
@@ -511,7 +551,6 @@
       color: var(--white);
     }
 
-    /* Weather side panel */
     .weather-loc {
       font-size: 0.98rem;
       font-weight: 700;
@@ -597,6 +636,173 @@
       margin-top: 10px;
     }
 
+    /* Sheti Mitra Chat Panel */
+    .chat-card {
+      background: var(--white);
+      border-radius: 20px;
+      box-shadow: 0 16px 46px rgba(0,0,0,0.07);
+      border: 1.5px solid var(--border);
+      overflow: hidden;
+    }
+
+    .chat-header {
+      background: linear-gradient(135deg, var(--green-deep), var(--green-mid));
+      color: var(--white);
+      padding: 18px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .chat-header h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+    }
+
+    .chat-header p {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.82);
+    }
+
+    .chat-pill-tag {
+      background: rgba(255,255,255,0.16);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--amber);
+    }
+
+    .chat-body {
+      padding: 20px 24px 24px;
+    }
+
+    .chat-prompts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .chip-btn {
+      border: 1px solid var(--border);
+      background: #f6faf7;
+      color: var(--green-deep);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.78rem;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .chip-btn:hover {
+      background: #e7f4ea;
+      border-color: var(--green-soft);
+    }
+
+    .chat-messages {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 320px;
+      overflow-y: auto;
+      padding: 14px;
+      background: #f9fbf9;
+      border: 1px solid #e7efe8;
+      border-radius: 14px;
+      margin-bottom: 14px;
+    }
+
+    .chat-msg {
+      max-width: 88%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .chat-msg.user {
+      align-self: flex-end;
+      background: var(--green-deep);
+      color: var(--white);
+      border-bottom-right-radius: 4px;
+    }
+
+    .chat-msg.bot {
+      align-self: flex-start;
+      background: var(--white);
+      border: 1px solid var(--border);
+      color: var(--text-dark);
+      border-bottom-left-radius: 4px;
+    }
+
+    .chat-sources {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed #dce7dd;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .chat-sources ul {
+      list-style: none;
+      display: grid;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .chat-sources a {
+      color: var(--green-mid);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .chat-sources a:hover {
+      text-decoration: underline;
+    }
+
+    .chat-input-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .chat-input-row input {
+      flex: 1;
+      padding: 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.92rem;
+      font-family: 'DM Sans', sans-serif;
+      background: #f8fbf8;
+      outline: none;
+    }
+
+    .chat-input-row input:focus {
+      border-color: var(--green-soft);
+      background: var(--white);
+    }
+
+    .btn-chat {
+      padding: 11px 20px;
+      border-radius: 10px;
+      border: none;
+      background: var(--green-deep);
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn-chat:hover { background: var(--green-mid); }
+    .btn-chat:disabled { opacity: 0.6; cursor: not-allowed; }
+
     .footer {
       text-align: center;
       padding: 20px;
@@ -612,106 +818,117 @@
     }
 
     @media (max-width: 640px) {
+      .hero { padding: 66px 16px 72px; }
+      .lang-switch { top: 12px; right: 12px; }
       .form-area { padding: 22px 16px; }
       .results-section { padding: 22px 16px; }
+      .chat-header, .chat-body { padding: 16px; }
       .grid-3, .grid-2 { grid-template-columns: 1fr; }
-      .location-search-row { flex-direction: column; }
+      .location-search-row, .chat-input-row { flex-direction: column; }
       .weather-stats { grid-template-columns: 1fr; }
       .how-it-works { padding: 14px 16px; gap: 10px; justify-content: flex-start; }
+      .chat-msg { max-width: 100%; }
     }
   </style>
 </head>
 <body>
 
   <div class="hero">
-    <div class="hero-tag">FastAPI · Random Forest · 15-Day Weather · LangChain</div>
-    <h1>Crop <span>Recommendation</span><br/>System</h1>
-    <p>Enter your soil nutrients and climate inputs, optionally select a location for 15-day weather context, and compare the top 3 ML crops.</p>
+    <div class="lang-switch" role="group" aria-label="Language switch">
+      <button type="button" id="langMrBtn" class="lang-btn" data-lang="mr">मराठी</button>
+      <span class="lang-sep">|</span>
+      <button type="button" id="langEnBtn" class="lang-btn active" data-lang="en">English</button>
+    </div>
+
+    <div class="hero-tag" data-i18n="hero_tag">FastAPI · Random Forest · 15-Day Weather · LangChain · Sheti Mitra</div>
+    <h1 data-i18n-html="hero_title">Crop <span>Recommendation</span><br/>System</h1>
+    <p data-i18n="hero_subtitle">Enter your soil nutrients and climate inputs, optionally select a location for 15-day weather context, and ask Sheti Mitra for practical farming guidance.</p>
   </div>
 
   <div class="container">
     <div class="card">
 
       <div class="how-it-works">
-        <div class="step"><div class="step-num">1</div> Enter soil &amp; climate values</div>
-        <div class="step"><div class="step-num">2</div> Top 3 Random Forest shortlist</div>
-        <div class="step"><div class="step-num">3</div> 15-day weather &amp; AI review</div>
+        <div class="step"><div class="step-num">1</div> <span data-i18n="step_1">Enter soil &amp; climate values</span></div>
+        <div class="step"><div class="step-num">2</div> <span data-i18n="step_2">Top 3 Random Forest shortlist</span></div>
+        <div class="step"><div class="step-num">3</div> <span data-i18n="step_3">15-day weather &amp; AI review</span></div>
       </div>
 
       <form class="form-area" action="/predict" method="POST" novalidate>
         {% if field_errors %}
-        <div class="error-banner" role="alert">
+        <div class="error-banner" role="alert" data-i18n="error_banner">
           Please fix the highlighted fields below before running the recommendation.
         </div>
         {% endif %}
 
-        <div class="section-label">Soil Nutrients (kg/ha)</div>
+        <div class="section-label" data-i18n="sec_soil">Soil Nutrients (kg/ha)</div>
         <div class="grid-3">
           <div class="field {% if field_errors.get('Nitrogen') %}has-error{% endif %}">
-            <label for="Nitrogen">Nitrogen (N)</label>
+            <label for="Nitrogen" data-i18n="lbl_n">Nitrogen (N)</label>
             <input id="Nitrogen" type="number" name="Nitrogen" placeholder="e.g. 90" min="0" max="200" step="any" value="{{ form_data.get('Nitrogen', '') }}" required/>
-            <div class="hint">Allowed: 0 – 200 (dataset: 0 – 140)</div>
+            <div class="hint" data-i18n="hint_n">Allowed: 0 – 200 (dataset: 0 – 140)</div>
             {% if field_errors.get('Nitrogen') %}<div class="field-error">{{ field_errors['Nitrogen'] }}</div>{% endif %}
           </div>
           <div class="field {% if field_errors.get('Phosphorus') %}has-error{% endif %}">
-            <label for="Phosphorus">Phosphorus (P)</label>
+            <label for="Phosphorus" data-i18n="lbl_p">Phosphorus (P)</label>
             <input id="Phosphorus" type="number" name="Phosphorus" placeholder="e.g. 42" min="0" max="200" step="any" value="{{ form_data.get('Phosphorus', '') }}" required/>
-            <div class="hint">Allowed: 0 – 200 (dataset: 5 – 145)</div>
+            <div class="hint" data-i18n="hint_p">Allowed: 0 – 200 (dataset: 5 – 145)</div>
             {% if field_errors.get('Phosphorus') %}<div class="field-error">{{ field_errors['Phosphorus'] }}</div>{% endif %}
           </div>
           <div class="field {% if field_errors.get('Potassium') %}has-error{% endif %}">
-            <label for="Potassium">Potassium (K)</label>
+            <label for="Potassium" data-i18n="lbl_k">Potassium (K)</label>
             <input id="Potassium" type="number" name="Potassium" placeholder="e.g. 43" min="0" max="205" step="any" value="{{ form_data.get('Potassium', '') }}" required/>
-            <div class="hint">Allowed: 0 – 205 (dataset: 5 – 205)</div>
+            <div class="hint" data-i18n="hint_k">Allowed: 0 – 205 (dataset: 5 – 205)</div>
             {% if field_errors.get('Potassium') %}<div class="field-error">{{ field_errors['Potassium'] }}</div>{% endif %}
           </div>
         </div>
 
-        <div class="section-label">Climate Inputs (Used by ML Model)</div>
+        <div class="section-label" data-i18n="sec_climate">Climate Inputs (Used by ML Model)</div>
         <div class="grid-2">
           <div class="field {% if field_errors.get('Temperature') %}has-error{% endif %}">
-            <label for="Temperature">Temperature (°C)</label>
+            <label for="Temperature" data-i18n="lbl_temp">Temperature (°C)</label>
             <input id="Temperature" type="number" name="Temperature" placeholder="e.g. 20.88" min="-10" max="60" step="any" value="{{ form_data.get('Temperature', '') }}" required/>
-            <div class="hint">Allowed: -10 – 60 °C (dataset: 8.8 – 43.7 °C)</div>
+            <div class="hint" data-i18n="hint_temp">Allowed: -10 – 60 °C (dataset: 8.8 – 43.7 °C)</div>
             {% if field_errors.get('Temperature') %}<div class="field-error">{{ field_errors['Temperature'] }}</div>{% endif %}
           </div>
           <div class="field {% if field_errors.get('Humidity') %}has-error{% endif %}">
-            <label for="Humidity">Humidity (%)</label>
+            <label for="Humidity" data-i18n="lbl_hum">Humidity (%)</label>
             <input id="Humidity" type="number" name="Humidity" placeholder="e.g. 82" min="0" max="100" step="any" value="{{ form_data.get('Humidity', '') }}" required/>
-            <div class="hint">Allowed: 0 – 100 % (dataset: 14.3 – 100 %)</div>
+            <div class="hint" data-i18n="hint_hum">Allowed: 0 – 100 % (dataset: 14.3 – 100 %)</div>
             {% if field_errors.get('Humidity') %}<div class="field-error">{{ field_errors['Humidity'] }}</div>{% endif %}
           </div>
         </div>
 
-        <div class="section-label">Soil pH &amp; Model Rainfall</div>
+        <div class="section-label" data-i18n="sec_ph_rain">Soil pH &amp; Model Rainfall</div>
         <div class="grid-2">
           <div class="field {% if field_errors.get('pH') %}has-error{% endif %}">
-            <label for="pH">Soil pH</label>
+            <label for="pH" data-i18n="lbl_ph">Soil pH</label>
             <input id="pH" type="number" name="pH" placeholder="e.g. 6.5" min="0" max="14" step="any" value="{{ form_data.get('pH', '') }}" required/>
-            <div class="hint">Allowed: 0 – 14 (dataset: 3.5 – 9.9)</div>
+            <div class="hint" data-i18n="hint_ph">Allowed: 0 – 14 (dataset: 3.5 – 9.9)</div>
             {% if field_errors.get('pH') %}<div class="field-error">{{ field_errors['pH'] }}</div>{% endif %}
           </div>
           <div class="field {% if field_errors.get('Rainfall') %}has-error{% endif %}">
-            <label for="Rainfall">Model Rainfall (mm)</label>
+            <label for="Rainfall" data-i18n="lbl_rain">Model Rainfall (mm)</label>
             <input id="Rainfall" type="number" name="Rainfall" placeholder="e.g. 202.94" min="0" max="500" step="any" value="{{ form_data.get('Rainfall', '') }}" required/>
-            <div class="hint">Kept separate from 15-day forecast rainfall</div>
+            <div class="hint" data-i18n="hint_rain">Kept separate from 15-day forecast rainfall</div>
             {% if field_errors.get('Rainfall') %}<div class="field-error">{{ field_errors['Rainfall'] }}</div>{% endif %}
           </div>
         </div>
 
-        <div class="section-label">Location for 15-Day Weather Context (Optional)</div>
+        <div class="section-label" data-i18n="sec_location">Location for 15-Day Weather Context (Optional)</div>
         <div class="location-box">
           <div class="location-search-row">
             <input
               type="text"
               id="locationQuery"
               name="location_query"
+              data-i18n-placeholder="ph_location"
               placeholder="Search village, town, or city (e.g. Pune, Aurangabad, Springfield)"
               value="{{ form_data.get('location_query', '') }}"
             />
-            <button type="button" id="searchLocationBtn" class="btn-secondary">Search Location</button>
+            <button type="button" id="searchLocationBtn" class="btn-secondary" data-i18n="btn_search_loc">Search Location</button>
           </div>
-          <div class="location-note">
+          <div class="location-note" data-i18n="loc_note">
             Select a matching location with its district/state and country to fetch current weather and a 15-day forecast. Your manually entered climate values above are never overwritten.
           </div>
           {% if field_errors.get('location') %}
@@ -731,7 +948,7 @@
               Selected: <strong>{{ form_data.get('location_display_name') or form_data.get('location_name', '') }}</strong>
               {% if form_data.get('latitude') %}({{ form_data.get('latitude') }}, {{ form_data.get('longitude') }}){% endif %}
             </span>
-            <button type="button" id="clearLocationBtn" class="btn-clear">Clear location</button>
+            <button type="button" id="clearLocationBtn" class="btn-clear" data-i18n="btn_clear_loc">Clear location</button>
           </div>
 
           <div id="locationSearchStatus" class="location-note" style="display: none;"></div>
@@ -757,7 +974,7 @@
           </div>
         </div>
 
-        <button type="submit" class="btn-submit">Recommend Best Crop</button>
+        <button type="submit" class="btn-submit" data-i18n="btn_submit">Recommend Best Crop</button>
       </form>
 
       {% if recommendation %}
@@ -765,10 +982,10 @@
         {% if recommendation.weather_status != 'ok' or recommendation.ai_status != 'ok' %}
         <div class="status-notice">
           {% if recommendation.weather_status != 'ok' and recommendation.weather_message %}
-          <div><strong>Weather status:</strong> {{ recommendation.weather_message }}</div>
+          <div><strong data-i18n="lbl_weather_status">Weather status:</strong> {{ recommendation.weather_message }}</div>
           {% endif %}
           {% if recommendation.ai_status != 'ok' and recommendation.ai_message %}
-          <div><strong>AI reranking status:</strong> {{ recommendation.ai_message }}</div>
+          <div><strong data-i18n="lbl_ai_status">AI reranking status:</strong> {{ recommendation.ai_message }}</div>
           {% endif %}
         </div>
         {% endif %}
@@ -778,34 +995,36 @@
             {% set top_item = recommendation.final_ranking[0] %}
             <div class="top-crop-card">
               {% if recommendation.ai_status == 'ok' and recommendation.order_changed %}
-              <span class="badge amber">AI-Adjusted Top Crop</span>
+              <span class="badge amber" data-i18n="badge_ai_adjusted">AI-Adjusted Top Crop</span>
               {% elif recommendation.ai_status == 'ok' %}
-              <span class="badge">ML Ranking Retained</span>
+              <span class="badge" data-i18n="badge_ml_retained">ML Ranking Retained</span>
               {% else %}
-              <span class="badge">ML Top Recommendation</span>
+              <span class="badge" data-i18n="badge_ml_top">ML Top Recommendation</span>
               {% endif %}
               <div class="result-crop">{{ recommendation.recommended_crop | upper }}</div>
               <div class="top-crop-meta">
-                Final rank #{{ top_item.final_rank }} · ML rank #{{ top_item.ml_rank }} · ML model score: {{ "%.2f"|format(top_item.ml_score_pct) }}%
+                <span data-i18n="lbl_final_rank_inline">Final rank</span> #{{ top_item.final_rank }} ·
+                <span data-i18n="lbl_ml_rank_inline">ML rank</span> #{{ top_item.ml_rank }} ·
+                <span data-i18n="lbl_ml_score_inline">ML model score</span>: {{ "%.2f"|format(top_item.ml_score_pct) }}%
               </div>
             </div>
 
             <div class="why-box">
-              <h3>Why this crop?</h3>
+              <h3 data-i18n="hdr_why">Why this crop?</h3>
               <p>{{ recommendation.why_this_crop }}</p>
               <p>{{ recommendation.order_change_explanation }}</p>
             </div>
 
             <div class="panel">
-              <div class="panel-title">Top 3 Shortlist Comparison</div>
+              <div class="panel-title" data-i18n="hdr_shortlist">Top 3 Shortlist Comparison</div>
               <div class="table-wrap">
                 <table class="compare-table">
                   <thead>
                     <tr>
-                      <th>Crop</th>
-                      <th>ML rank</th>
-                      <th>ML model score</th>
-                      <th>Final rank</th>
+                      <th data-i18n="col_crop">Crop</th>
+                      <th data-i18n="col_ml_rank">ML rank</th>
+                      <th data-i18n="col_ml_score">ML model score</th>
+                      <th data-i18n="col_final_rank">Final rank</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -827,31 +1046,31 @@
           </div>
 
           <aside class="panel" aria-label="Weather summary">
-            <div class="panel-title">15-Day Weather Context</div>
+            <div class="panel-title" data-i18n="hdr_weather">15-Day Weather Context</div>
             {% if recommendation.weather %}
             {% set wx = recommendation.weather %}
             <div class="weather-loc">{{ wx.location.display_name }}</div>
             <div class="weather-coords">
-              Coordinates: {{ "%.4f"|format(wx.location.latitude) }}, {{ "%.4f"|format(wx.location.longitude) }}
+              <span data-i18n="lbl_coords">Coordinates:</span> {{ "%.4f"|format(wx.location.latitude) }}, {{ "%.4f"|format(wx.location.longitude) }}
             </div>
 
             <div class="weather-stats">
               {% if wx.current %}
               <div class="stat-box">
-                <div class="stat-label">Current Weather</div>
+                <div class="stat-label" data-i18n="lbl_current_wx">Current Weather</div>
                 <div class="stat-value">{{ wx.current.temperature_c }} °C · {{ wx.current.condition }}</div>
               </div>
               {% endif %}
               <div class="stat-box">
-                <div class="stat-label">Days Covered</div>
+                <div class="stat-label" data-i18n="lbl_days_cov">Days Covered</div>
                 <div class="stat-value">{{ wx.days_covered }} of {{ wx.days_requested }} days</div>
               </div>
               <div class="stat-box">
-                <div class="stat-label">Total Forecast Rainfall</div>
+                <div class="stat-label" data-i18n="lbl_tot_rain">Total Forecast Rainfall</div>
                 <div class="stat-value">{{ "%.1f"|format(wx.total_rainfall_mm) }} mm</div>
               </div>
               <div class="stat-box">
-                <div class="stat-label">Model Rainfall Input</div>
+                <div class="stat-label" data-i18n="lbl_model_rain">Model Rainfall Input</div>
                 <div class="stat-value">{{ "%.1f"|format(recommendation.input_features["Rainfall"]) }} mm</div>
               </div>
             </div>
@@ -864,9 +1083,9 @@
               <table class="forecast-table">
                 <thead>
                   <tr>
-                    <th>Date</th>
-                    <th>Min / Max</th>
-                    <th>Rainfall</th>
+                    <th data-i18n="col_date">Date</th>
+                    <th data-i18n="col_minmax">Min / Max</th>
+                    <th data-i18n="col_rain">Rainfall</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -880,8 +1099,8 @@
                 </tbody>
               </table>
             </div>
-            <div class="separate-note">
-              Near-term forecast ({{ wx.start_date }} to {{ wx.end_date }}) is used only for planting context and never alters your manual climate inputs.
+            <div class="separate-note" data-i18n="wx_footer_note">
+              Near-term forecast is used only for planting context and never alters your manual climate inputs.
             </div>
             {% else %}
             <p class="location-note">
@@ -889,15 +1108,15 @@
             </p>
             <div class="weather-stats" style="margin-top: 12px;">
               <div class="stat-box">
-                <div class="stat-label">Entered Temperature</div>
+                <div class="stat-label" data-i18n="lbl_entered_temp">Entered Temperature</div>
                 <div class="stat-value">{{ recommendation.input_features["Temperature"] }} °C</div>
               </div>
               <div class="stat-box">
-                <div class="stat-label">Entered Humidity</div>
+                <div class="stat-label" data-i18n="lbl_entered_hum">Entered Humidity</div>
                 <div class="stat-value">{{ recommendation.input_features["Humidity"] }} %</div>
               </div>
               <div class="stat-box">
-                <div class="stat-label">Model Rainfall Input</div>
+                <div class="stat-label" data-i18n="lbl_model_rain">Model Rainfall Input</div>
                 <div class="stat-value">{{ recommendation.input_features["Rainfall"] }} mm</div>
               </div>
             </div>
@@ -906,16 +1125,263 @@
         </div>
       </section>
       {% endif %}
-
     </div>
+
+    <!-- ====== SHETI MITRA RAG CHATBOT PANEL ====== -->
+    <section class="chat-card" aria-label="Sheti Mitra farming chatbot">
+      <div class="chat-header">
+        <div>
+          <h2 data-i18n="chat_title">Sheti Mitra — Farming Assistant</h2>
+          <p data-i18n="chat_subtitle">Ask about soil testing, irrigation, sowing, or crop care using official agricultural notes.</p>
+        </div>
+        <span class="chat-pill-tag" data-i18n="chat_badge">RAG · Official Notes</span>
+      </div>
+      <div class="chat-body">
+        <div class="chat-prompts" id="chatQuickPrompts"></div>
+
+        <div class="chat-messages" id="chatMessages" aria-live="polite">
+          <div class="chat-msg bot" id="chatWelcomeMsg" data-i18n="chat_welcome">
+            Namaste! I am Sheti Mitra. Ask me about soil testing, irrigation, sowing, or crop care and I will answer from verified farming notes with official source links.
+          </div>
+        </div>
+
+        <form class="chat-input-row" id="chatForm">
+          <input
+            type="text"
+            id="chatInput"
+            data-i18n-placeholder="chat_placeholder"
+            placeholder="Ask Sheti Mitra (e.g. How do I collect a soil sample?)"
+            minlength="2"
+            maxlength="500"
+            required
+          />
+          <button type="submit" id="chatSendBtn" class="btn-chat" data-i18n="chat_send">Ask</button>
+        </form>
+      </div>
+    </section>
   </div>
 
-  <div class="footer">
-    Crop Recommendation System &nbsp;·&nbsp; FastAPI, scikit-learn, Open-Meteo &amp; LangChain
+  <div class="footer" data-i18n="footer_text">
+    Crop Recommendation System &amp; Sheti Mitra · FastAPI, scikit-learn, Open-Meteo &amp; Gemini
   </div>
 
   <script>
     (function () {
+      // ============================================================
+      // Bilingual UI Translations (English & Marathi)
+      // ============================================================
+      const TRANSLATIONS = {
+        en: {
+          hero_tag: "FastAPI · Random Forest · 15-Day Weather · LangChain · Sheti Mitra",
+          hero_title: 'Crop <span>Recommendation</span><br/>System',
+          hero_subtitle: "Enter your soil nutrients and climate inputs, optionally select a location for 15-day weather context, and ask Sheti Mitra for practical farming guidance.",
+          step_1: "Enter soil & climate values",
+          step_2: "Top 3 Random Forest shortlist",
+          step_3: "15-day weather & AI review",
+          error_banner: "Please fix the highlighted fields below before running the recommendation.",
+          sec_soil: "Soil Nutrients (kg/ha)",
+          lbl_n: "Nitrogen (N)",
+          hint_n: "Allowed: 0 – 200 (dataset: 0 – 140)",
+          lbl_p: "Phosphorus (P)",
+          hint_p: "Allowed: 0 – 200 (dataset: 5 – 145)",
+          lbl_k: "Potassium (K)",
+          hint_k: "Allowed: 0 – 205 (dataset: 5 – 205)",
+          sec_climate: "Climate Inputs (Used by ML Model)",
+          lbl_temp: "Temperature (°C)",
+          hint_temp: "Allowed: -10 – 60 °C (dataset: 8.8 – 43.7 °C)",
+          lbl_hum: "Humidity (%)",
+          hint_hum: "Allowed: 0 – 100 % (dataset: 14.3 – 100 %)",
+          sec_ph_rain: "Soil pH & Model Rainfall",
+          lbl_ph: "Soil pH",
+          hint_ph: "Allowed: 0 – 14 (dataset: 3.5 – 9.9)",
+          lbl_rain: "Model Rainfall (mm)",
+          hint_rain: "Kept separate from 15-day forecast rainfall",
+          sec_location: "Location for 15-Day Weather Context (Optional)",
+          ph_location: "Search village, town, or city (e.g. Pune, Aurangabad, Springfield)",
+          btn_search_loc: "Search Location",
+          loc_note: "Select a matching location with its district/state and country to fetch current weather and a 15-day forecast. Your manually entered climate values above are never overwritten.",
+          btn_clear_loc: "Clear location",
+          btn_submit: "Recommend Best Crop",
+          lbl_weather_status: "Weather status:",
+          lbl_ai_status: "AI reranking status:",
+          badge_ai_adjusted: "AI-Adjusted Top Crop",
+          badge_ml_retained: "ML Ranking Retained",
+          badge_ml_top: "ML Top Recommendation",
+          lbl_final_rank_inline: "Final rank",
+          lbl_ml_rank_inline: "ML rank",
+          lbl_ml_score_inline: "ML model score",
+          hdr_why: "Why this crop?",
+          hdr_shortlist: "Top 3 Shortlist Comparison",
+          col_crop: "Crop",
+          col_ml_rank: "ML rank",
+          col_ml_score: "ML model score",
+          col_final_rank: "Final rank",
+          hdr_weather: "15-Day Weather Context",
+          lbl_coords: "Coordinates:",
+          lbl_current_wx: "Current Weather",
+          lbl_days_cov: "Days Covered",
+          lbl_tot_rain: "Total Forecast Rainfall",
+          lbl_model_rain: "Model Rainfall Input",
+          col_date: "Date",
+          col_minmax: "Min / Max",
+          col_rain: "Rainfall",
+          wx_footer_note: "Near-term forecast is used only for planting context and never alters your manual climate inputs.",
+          lbl_entered_temp: "Entered Temperature",
+          lbl_entered_hum: "Entered Humidity",
+          chat_title: "Sheti Mitra — Farming Assistant",
+          chat_subtitle: "Ask about soil testing, irrigation, sowing, or crop care using official agricultural notes.",
+          chat_badge: "RAG · Official Notes",
+          chat_welcome: "Namaste! I am Sheti Mitra. Ask me about soil testing, irrigation, sowing, or crop care and I will answer from verified farming notes with official source links.",
+          chat_placeholder: "Ask Sheti Mitra (e.g. How do I collect a soil sample?)",
+          chat_send: "Ask",
+          chat_thinking: "Searching farming notes and preparing answer...",
+          chat_sources_label: "Official Sources:",
+          chat_error: "Unable to reach Sheti Mitra right now. Please try again.",
+          footer_text: "Crop Recommendation System & Sheti Mitra · FastAPI, scikit-learn, Open-Meteo & Gemini",
+          quick_prompts: [
+            "How do I collect a soil sample?",
+            "Benefits of drip irrigation",
+            "How to do seed treatment before sowing?",
+            "When should nitrogen fertilizer be split?"
+          ]
+        },
+        mr: {
+          hero_tag: "FastAPI · Random Forest · १५ दिवसांचे हवामान · LangChain · शेती मित्र",
+          hero_title: 'पीक <span>शिफारस</span><br/>प्रणाली',
+          hero_subtitle: "मातीतील अन्नद्रव्ये आणि हवामानाची माहिती भरा, १५ दिवसांच्या हवामानासाठी ठिकाण निवडा आणि शेती मित्राकडून उपयुक्त सल्ला मिळवा.",
+          step_1: "माती व हवामान माहिती भरा",
+          step_2: "ML मॉडेलचे सर्वोत्तम ३ पिके",
+          step_3: "१५ दिवसांचे हवामान व AI तपासणी",
+          error_banner: "शिफारस मिळवण्यापूर्वी कृपया खालील लाल रंगातील रकाने दुरुस्त करा.",
+          sec_soil: "मातीतील अन्नद्रव्ये (kg/ha)",
+          lbl_n: "नत्र (N)",
+          hint_n: "मर्यादा: 0 – 200 (डेटासेट: 0 – 140)",
+          lbl_p: "स्फुरद (P)",
+          hint_p: "मर्यादा: 0 – 200 (डेटासेट: 5 – 145)",
+          lbl_k: "पालाश (K)",
+          hint_k: "मर्यादा: 0 – 205 (डेटासेट: 5 – 205)",
+          sec_climate: "हवामानाची माहिती (ML मॉडेलसाठी)",
+          lbl_temp: "तापमान (°C)",
+          hint_temp: "मर्यादा: -10 – 60 °C (डेटासेट: 8.8 – 43.7 °C)",
+          lbl_hum: "आर्द्रता (%)",
+          hint_hum: "मर्यादा: 0 – 100 % (डेटासेट: 14.3 – 100 %)",
+          sec_ph_rain: "मातीचा सामू (pH) व मॉडेल पाऊस",
+          lbl_ph: "मातीचा सामू (pH)",
+          hint_ph: "मर्यादा: 0 – 14 (डेटासेट: 3.5 – 9.9)",
+          lbl_rain: "मॉडेल पाऊस (mm)",
+          hint_rain: "१५ दिवसांच्या हवामान अंदाजापासून वेगळे ठेवले आहे",
+          sec_location: "१५ दिवसांच्या हवामानासाठी ठिकाण (ऐच्छिक)",
+          ph_location: "गाव, तालुका किंवा शहर शोधा (उदा. Pune, Aurangabad)",
+          btn_search_loc: "ठिकाण शोधा",
+          loc_note: "जिल्हा/राज्य आणि देशासह योग्य ठिकाण निवडा. वर भरलेली हवामानाची माहिती आपोआप बदलली जाणार नाही.",
+          btn_clear_loc: "ठिकाण काढा",
+          btn_submit: "सर्वोत्तम पीक सुचवा",
+          lbl_weather_status: "हवामान स्थिती:",
+          lbl_ai_status: "AI क्रमवारी स्थिती:",
+          badge_ai_adjusted: "AI ने निवडलेले सर्वोत्तम पीक",
+          badge_ml_retained: "ML क्रमवारी कायम ठेवली",
+          badge_ml_top: "ML सर्वोत्तम शिफारस",
+          lbl_final_rank_inline: "अंतिम क्रमांक",
+          lbl_ml_rank_inline: "ML क्रमांक",
+          lbl_ml_score_inline: "ML model score",
+          hdr_why: "हेच पीक का?",
+          hdr_shortlist: "शीर्ष ३ पिकांची तुलना",
+          col_crop: "पीक",
+          col_ml_rank: "ML क्रमांक",
+          col_ml_score: "ML model score",
+          col_final_rank: "अंतिम क्रमांक",
+          hdr_weather: "१५ दिवसांचा हवामान अंदाज",
+          lbl_coords: "अक्षांश / रेखांश:",
+          lbl_current_wx: "सध्याचे हवामान",
+          lbl_days_cov: "उपलब्ध दिवस",
+          lbl_tot_rain: "एकूण अंदाजित पाऊस",
+          lbl_model_rain: "मॉडेल पाऊस इनपुट",
+          col_date: "तारीख",
+          col_minmax: "किमान / कमाल",
+          col_rain: "पाऊस",
+          wx_footer_note: "हा जवळचा हवामान अंदाज फक्त पेरणीच्या संदर्भासाठी आहे; तुमचे इनपुट बदलले जात नाहीत.",
+          lbl_entered_temp: "भरलेले तापमान",
+          lbl_entered_hum: "भरलेली आर्द्रता",
+          chat_title: "शेती मित्र — शेती सहाय्यक",
+          chat_subtitle: "माती परीक्षण, सिंचन, पेरणी किंवा पीक काळजीबद्दल अधिकृत नोंदींवर आधारित प्रश्न विचारा.",
+          chat_badge: "RAG · अधिकृत नोंदी",
+          chat_welcome: "नमस्कार! मी शेती मित्र आहे. माती परीक्षण, सिंचन, पेरणी किंवा पीक काळजीबद्दल प्रश्न विचारा — मी अधिकृत नोंदी व स्रोतांसह सोप्या भाषेत उत्तर देईन.",
+          chat_placeholder: "शेती मित्राला प्रश्न विचारा (उदा. माती परीक्षण कसे करावे?)",
+          chat_send: "विचारा",
+          chat_thinking: "नोंदी शोधत आहे आणि उत्तर तयार करत आहे...",
+          chat_sources_label: "अधिकृत स्रोत:",
+          chat_error: "सध्या शेती मित्र सेवेशी संपर्क होऊ शकला नाही. कृपया पुन्हा प्रयत्न करा.",
+          footer_text: "पीक शिफारस प्रणाली व शेती मित्र · FastAPI, scikit-learn, Open-Meteo आणि Gemini",
+          quick_prompts: [
+            "माती परीक्षणासाठी नमुना कसा घ्यावा?",
+            "ठिबक सिंचनाचे फायदे काय आहेत?",
+            "पेरणीपूर्वी बीजप्रक्रिया कशी करावी?",
+            "नत्र खत विभागून कधी द्यावे?"
+          ]
+        }
+      };
+
+      const STORAGE_KEY = "sheti_mitra_lang";
+      let currentLang = localStorage.getItem(STORAGE_KEY) === "mr" ? "mr" : "en";
+
+      const langMrBtn = document.getElementById("langMrBtn");
+      const langEnBtn = document.getElementById("langEnBtn");
+      const chatPromptsEl = document.getElementById("chatQuickPrompts");
+
+      function renderQuickPrompts(lang) {
+        const prompts = TRANSLATIONS[lang].quick_prompts;
+        chatPromptsEl.innerHTML = "";
+        prompts.forEach((text) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "chip-btn";
+          btn.textContent = text;
+          btn.addEventListener("click", () => {
+            document.getElementById("chatInput").value = text;
+            document.getElementById("chatForm").requestSubmit();
+          });
+          chatPromptsEl.appendChild(btn);
+        });
+      }
+
+      function applyLanguage(lang) {
+        currentLang = lang === "mr" ? "mr" : "en";
+        localStorage.setItem(STORAGE_KEY, currentLang);
+        document.documentElement.lang = currentLang;
+
+        langMrBtn.classList.toggle("active", currentLang === "mr");
+        langEnBtn.classList.toggle("active", currentLang === "en");
+
+        const dict = TRANSLATIONS[currentLang];
+        document.querySelectorAll("[data-i18n]").forEach((el) => {
+          const key = el.getAttribute("data-i18n");
+          if (dict[key] !== undefined) {
+            el.textContent = dict[key];
+          }
+        });
+        document.querySelectorAll("[data-i18n-html]").forEach((el) => {
+          const key = el.getAttribute("data-i18n-html");
+          if (dict[key] !== undefined) {
+            el.innerHTML = dict[key];
+          }
+        });
+        document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+          const key = el.getAttribute("data-i18n-placeholder");
+          if (dict[key] !== undefined) {
+            el.setAttribute("placeholder", dict[key]);
+          }
+        });
+
+        renderQuickPrompts(currentLang);
+      }
+
+      langMrBtn.addEventListener("click", () => applyLanguage("mr"));
+      langEnBtn.addEventListener("click", () => applyLanguage("en"));
+      applyLanguage(currentLang);
+
+      // ============================================================
+      // Location Search & Selection
+      // ============================================================
       const queryInput = document.getElementById("locationQuery");
       const searchBtn = document.getElementById("searchLocationBtn");
       const resultsBox = document.getElementById("locationResults");
@@ -944,7 +1410,7 @@
         fields.lon.value = String(opt.longitude);
         queryInput.value = opt.name || "";
 
-        selectedText.textContent = "Selected: ";
+        selectedText.textContent = currentLang === "mr" ? "निवडलेले: " : "Selected: ";
         const strong = document.createElement("strong");
         strong.textContent = fields.display.value;
         selectedText.appendChild(strong);
@@ -982,13 +1448,15 @@
       async function runLocationSearch() {
         const q = queryInput.value.trim();
         if (q.length < 2) {
-          statusBox.textContent = "Enter at least 2 characters to search.";
+          statusBox.textContent = currentLang === "mr"
+            ? "शोधण्यासाठी किमान २ अक्षरे लिहा."
+            : "Enter at least 2 characters to search.";
           statusBox.style.display = "block";
           resultsBox.innerHTML = "";
           return;
         }
 
-        statusBox.textContent = "Searching locations...";
+        statusBox.textContent = currentLang === "mr" ? "ठिकाण शोधत आहे..." : "Searching locations...";
         statusBox.style.display = "block";
         resultsBox.innerHTML = "";
 
@@ -1000,14 +1468,17 @@
             return;
           }
           if (!data.results || data.results.length === 0) {
-            statusBox.textContent = "No matching village, town, or city found.";
+            statusBox.textContent = currentLang === "mr"
+              ? "कोणतेही जुळणारे गाव, तालुका किंवा शहर सापडले नाही."
+              : "No matching village, town, or city found.";
             return;
           }
 
-          statusBox.textContent =
-            data.results.length > 1
-              ? `Found ${data.results.length} matching locations. Choose the correct district/state and country:`
-              : "Found 1 matching location. Click to confirm:";
+          statusBox.textContent = currentLang === "mr"
+            ? `${data.results.length} ठिकाणे सापडली. योग्य जिल्हा/राज्य निवडा:`
+            : (data.results.length > 1
+                ? `Found ${data.results.length} matching locations. Choose the correct district/state and country:`
+                : "Found 1 matching location. Click to confirm:");
 
           data.results.forEach((loc) => {
             const btn = document.createElement("button");
@@ -1029,7 +1500,9 @@
             resultsBox.appendChild(btn);
           });
         } catch (err) {
-          statusBox.textContent = "Unable to reach location search right now.";
+          statusBox.textContent = currentLang === "mr"
+            ? "सध्या ठिकाण शोध सेवा उपलब्ध नाही."
+            : "Unable to reach location search right now.";
         }
       }
 
@@ -1053,6 +1526,84 @@
       });
 
       bindStaticOptionButtons();
+
+      // ============================================================
+      // Sheti Mitra Chat Interaction (POST /api/chat)
+      // ============================================================
+      const chatForm = document.getElementById("chatForm");
+      const chatInput = document.getElementById("chatInput");
+      const chatSendBtn = document.getElementById("chatSendBtn");
+      const chatMessages = document.getElementById("chatMessages");
+
+      function appendMessage(role, text, sources) {
+        const bubble = document.createElement("div");
+        bubble.className = `chat-msg ${role}`;
+
+        const body = document.createElement("div");
+        body.textContent = text;
+        bubble.appendChild(body);
+
+        if (sources && sources.length > 0) {
+          const srcWrap = document.createElement("div");
+          srcWrap.className = "chat-sources";
+          const label = document.createElement("strong");
+          label.textContent = TRANSLATIONS[currentLang].chat_sources_label;
+          srcWrap.appendChild(label);
+
+          const ul = document.createElement("ul");
+          sources.forEach((src) => {
+            const li = document.createElement("li");
+            const a = document.createElement("a");
+            a.href = src.url;
+            a.target = "_blank";
+            a.rel = "noopener noreferrer";
+            a.textContent = `${src.title} (${src.source_name})`;
+            li.appendChild(a);
+            ul.appendChild(li);
+          });
+          srcWrap.appendChild(ul);
+          bubble.appendChild(srcWrap);
+        }
+
+        chatMessages.appendChild(bubble);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return bubble;
+      }
+
+      chatForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const question = chatInput.value.trim();
+        if (question.length < 2) {
+          return;
+        }
+
+        appendMessage("user", question);
+        chatInput.value = "";
+        chatSendBtn.disabled = true;
+
+        const thinkingBubble = appendMessage("bot", TRANSLATIONS[currentLang].chat_thinking);
+
+        try {
+          const resp = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question, language: currentLang }),
+          });
+          const data = await resp.json();
+          thinkingBubble.remove();
+
+          if (!resp.ok) {
+            appendMessage("bot", data.detail || TRANSLATIONS[currentLang].chat_error);
+          } else {
+            appendMessage("bot", data.answer, data.sources || []);
+          }
+        } catch (err) {
+          thinkingBubble.remove();
+          appendMessage("bot", TRANSLATIONS[currentLang].chat_error);
+        } finally {
+          chatSendBtn.disabled = false;
+        }
+      });
     })();
   </script>
 </body>

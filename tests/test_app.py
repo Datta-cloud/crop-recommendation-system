@@ -703,6 +703,115 @@ def test_build_chat_model_gemini_defaults(monkeypatch):
     assert chat_model.max_retries == 2
 
 
+def test_sheti_mitra_english_marathi_and_out_of_kb(monkeypatch):
+    """Sheti Mitra answers English and Marathi farming questions and rejects out-of-KB queries."""
+    monkeypatch.setenv("GEMINI_API_KEY", "dummy-gemini-key")
+
+    def fake_gemini_response(prompt_text: str) -> str:
+        assert "soil_01" in prompt_text
+        if "Marathi (मराठी)" in prompt_text:
+            return json.dumps(
+                {
+                    "covered": True,
+                    "answer": "शेतातील ८ ते १० ठिकाणांहून १५ सेमी खोल नमुना घेऊन सावलीत वाळवा आणि तपासणीसाठी पाठवा.",
+                    "cited_note_ids": ["soil_01"],
+                }
+            )
+        return json.dumps(
+            {
+                "covered": True,
+                "answer": "Collect 8 to 10 zig-zag soil subsamples at 15 cm depth, mix cleanly, dry about 500 g in shade, and label the bag.",
+                "cited_note_ids": ["soil_01"],
+            }
+        )
+
+    fake_llm = RecordingFakeChatModel(response_payload=fake_gemini_response)
+    monkeypatch.setattr("services.rag_chat._build_gemini_chat_model", lambda api_key, model_name="gemini-2.5-flash": fake_llm)
+
+    with TestClient(app_module.app) as client:
+        # Homepage renders the Marathi | English switch and Sheti Mitra chat panel.
+        home_html = client.get("/").text
+        assert "मराठी" in home_html
+        assert "English" in home_html
+        assert "Sheti Mitra" in home_html
+
+        # 1. English farming question
+        en_resp = client.post(
+            "/api/chat",
+            json={"question": "How should I collect a soil sample for testing?", "language": "en"},
+        )
+        assert en_resp.status_code == 200
+        en_data = en_resp.json()
+        assert en_data["status"] == "ok"
+        assert en_data["covered"] is True
+        assert en_data["language"] == "en"
+        assert "15 cm" in en_data["answer"]
+        assert en_data["sources"][0]["id"] == "soil_01"
+        assert en_data["sources"][0]["url"] == "https://soilhealth.dac.gov.in/"
+
+        # 1b. General crop-selection question retrieves sowing_05 cleanly above relevance threshold.
+        rag_engine = app_module.get_rag_engine(app_module.app)
+        sow_hits = rag_engine.retrieve("which crop i should sow?", top_k=3)
+        assert sow_hits[0][0].id == "sowing_05"
+        assert sow_hits[0][1] >= 0.11
+
+        # 2. Marathi farming question
+        mr_resp = client.post(
+            "/api/chat",
+            json={"question": "माती परीक्षणासाठी नमुना कसा घ्यावा?", "language": "mr"},
+        )
+        assert mr_resp.status_code == 200
+        mr_data = mr_resp.json()
+        assert mr_data["status"] == "ok"
+        assert mr_data["covered"] is True
+        assert mr_data["language"] == "mr"
+        assert "१५ सेमी" in mr_data["answer"]
+        assert mr_data["sources"][0]["id"] == "soil_01"
+        assert mr_data["sources"][0]["url"] == "https://soilhealth.dac.gov.in/"
+
+        # 3. Question outside the knowledge base (English & Marathi)
+        oob_en = client.post(
+            "/api/chat",
+            json={"question": "Who won the cricket world cup?", "language": "en"},
+        )
+        assert oob_en.status_code == 200
+        oob_en_data = oob_en.json()
+        assert oob_en_data["covered"] is False
+        assert oob_en_data["status"] == "not_covered"
+        assert oob_en_data["sources"] == []
+        assert "do not cover" in oob_en_data["answer"].lower()
+
+        oob_mr = client.post(
+            "/api/chat",
+            json={"question": "क्रिकेट विश्वचषक कोणी जिंकला?", "language": "mr"},
+        )
+        assert oob_mr.status_code == 200
+        oob_mr_data = oob_mr.json()
+        assert oob_mr_data["covered"] is False
+        assert oob_mr_data["status"] == "not_covered"
+        assert oob_mr_data["sources"] == []
+        assert "उपलब्ध नाही" in oob_mr_data["answer"]
+
+        # 4. Missing GEMINI_API_KEY still shows direct retrieved note content + sources.
+        monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+        monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
+        monkeypatch.setattr(
+            "services.rag_chat._build_gemini_chat_model",
+            lambda api_key, model_name="gemini-2.5-flash": None,
+        )
+        # Restore original helper behavior by testing answer_farming_question directly
+        from services.rag_chat import answer_farming_question
+
+        offline_res = answer_farming_question(
+            app_module.get_rag_engine(app_module.app),
+            "When should nitrogen fertilizer be split?",
+            language="en",
+        )
+        assert offline_res.status == "unavailable"
+        assert "2 to 3 doses" in offline_res.answer
+        assert offline_res.sources[0].id == "care_01"
+
+
 def test_dry_forecast_explanation_uses_supplied_rainfall_figures():
     """Dry 15-day forecast supplies exact rainfall figures and grounds explanation without forcing a winner."""
     with open(BASE_DIR / "crop_model.pkl", "rb") as f:

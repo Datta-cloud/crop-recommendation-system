@@ -337,3 +337,41 @@ class RecommendResponse(BaseModel):
     ai_message: str | None = None
     reranker_provider: str | None = None
     reranker_model: str | None = None
+
+
+class ChatRequest(BaseModel):
+    """JSON request payload for POST /api/chat ('Sheti Mitra')."""
+
+    question: str = Field(..., min_length=2, max_length=500)
+    language: Literal["en", "mr"] = "en"
+
+    @field_validator("question")
+    @classmethod
+    def clean_question(cls, value: str) -> str:
+        cleaned = value.strip()
+        if len(cleaned) < 2:
+            raise ValueError("Please enter a valid farming question.")
+        return cleaned
+
+
+class ChatSource(BaseModel):
+    """Official note source returned alongside Sheti Mitra's answer."""
+
+    id: str
+    title: str
+    topic: str
+    source_name: str
+    url: str
+    score: float
+
+
+class ChatResponse(BaseModel):
+    """Structured JSON response for POST /api/chat."""
+
+    question: str
+    language: Literal["en", "mr"]
+    answer: str
+    covered: bool
+    sources: list[ChatSource] = Field(default_factory=list)
+    status: Literal["ok", "not_covered", "unavailable"]
+    message: str | None = None

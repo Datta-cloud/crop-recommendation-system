@@ -1,4 +1,4 @@
-"""FastAPI application for ML-powered Crop Recommendation with 15-day weather context."""
+"""FastAPI application for ML Crop Recommendation, 15-day weather, and Sheti Mitra RAG."""
 
 from __future__ import annotations
 
@@ -14,6 +14,8 @@ from fastapi.templating import Jinja2Templates
 from pydantic import ValidationError
 
 from schemas import (
+    ChatRequest,
+    ChatResponse,
     FEATURE_LABELS,
     LocationOption,
     RecommendRequest,
@@ -23,6 +25,7 @@ from schemas import (
     format_location_display,
 )
 from services.ml_service import load_ml_artifacts
+from services.rag_chat import DEFAULT_KB_PATH, ShetiMitraRAG, answer_farming_question
 from services.recommendation import generate_recommendation
 from services.weather import (
     WeatherTimeoutError,
@@ -62,14 +65,21 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 
 def ensure_artifacts_loaded(application: FastAPI) -> tuple[Any, list[str]]:
-    """Load ML artifacts once and cache them on app.state."""
+    """Load ML artifacts and farming RAG index once and cache them on app.state."""
     if not hasattr(application.state, "model") or not hasattr(
         application.state, "crop_names"
     ):
         model, crop_names = load_ml_artifacts(MODEL_PATH, LABELS_PATH)
         application.state.model = model
         application.state.crop_names = crop_names
+    if not hasattr(application.state, "rag"):
+        application.state.rag = ShetiMitraRAG.from_json(DEFAULT_KB_PATH)
     return application.state.model, application.state.crop_names
+
+
+def get_rag_engine(application: FastAPI) -> ShetiMitraRAG:
+    ensure_artifacts_loaded(application)
+    return application.state.rag
 
 
 @asynccontextmanager
@@ -81,10 +91,10 @@ async def lifespan(application: FastAPI):
 app = FastAPI(
     title="Crop Recommendation System",
     description=(
-        "Random Forest crop recommendation with 15-day Open-Meteo weather context "
-        "and LangChain shortlist evaluation."
+        "Random Forest crop recommendation with 15-day weather context, "
+        "LangChain shortlist evaluation, and Sheti Mitra RAG chatbot."
     ),
-    version="2.0.0",
+    version="2.1.0",
     lifespan=lifespan,
 )
 
@@ -95,7 +105,6 @@ def _format_pydantic_field_errors(exc: ValidationError) -> dict[str, str]:
     for err in exc.errors():
         loc = err.get("loc") or ()
         raw_field = str(loc[0]) if loc else "form"
-        # Normalize alias names back to canonical HTML field names.
         alias_map = {
             "N": "Nitrogen",
             "nitrogen": "Nitrogen",
@@ -171,16 +180,18 @@ def _build_selected_location_from_form(
 def health() -> dict[str, Any]:
     """Health check endpoint for deployment probes."""
     _, crop_names = ensure_artifacts_loaded(app)
+    rag = get_rag_engine(app)
     return {
         "status": "ok",
         "model_loaded": True,
         "crop_count": len(crop_names),
+        "kb_notes_count": len(rag.notes),
     }
 
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request) -> HTMLResponse:
-    """Render the main crop recommendation form."""
+    """Render the main crop recommendation form and Sheti Mitra chat panel."""
     ensure_artifacts_loaded(app)
     return templates.TemplateResponse(
         request=request,
@@ -294,6 +305,17 @@ def api_recommend(payload: RecommendRequest) -> RecommendResponse:
         selected_location=payload.location,
         location_query=payload.location_query,
         use_ai=payload.use_ai,
+    )
+
+
+@app.post("/api/chat", response_model=ChatResponse)
+def api_chat(payload: ChatRequest) -> ChatResponse:
+    """Answer farming questions using TF-IDF retrieval over data/farming.json and Gemini 2.5 Flash."""
+    rag = get_rag_engine(app)
+    return answer_farming_question(
+        rag=rag,
+        question=payload.question,
+        language=payload.language,
     )
 
 

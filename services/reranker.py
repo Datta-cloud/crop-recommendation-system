@@ -10,7 +10,7 @@ import re
 from typing import Any
 
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.output_parsers import PydanticOutputParser, StrOutputParser
+from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, ValidationError
 
@@ -33,18 +33,23 @@ DEFAULT_MODELS = {
     "openai_compatible": "gpt-4o-mini",
 }
 
-SYSTEM_PROMPT = """You are an agronomy decision assistant helping evaluate a machine-learning shortlist of 3 crops.
-Your task is to check whether the near-term weather forecast (up to 15 days) gives a strong, grounded reason to reorder those exact 3 ML candidate crops.
+SYSTEM_PROMPT = """You are an agronomy decision assistant helping evaluate a machine-learning shortlist of 3 crops for a farmer's selected location.
+Your task is to evaluate whether the location's current weather, current date/sowing season, and near-term forecast (up to 15 days) mean the 3 ML candidate crops should be reordered right now.
 
 Strict rules:
 1. Rank ONLY and ALL of the 3 provided candidate crops (`final_rank` 1, 2, and 3). Never invent a new crop, omit a candidate, or repeat a crop.
-2. Ground every weather statement in the exact supplied dated forecast values (dates, temperatures in °C, rainfall in mm, total forecast rainfall, and number of days covered).
-3. Treat the forecast strictly as near-term planting and early-establishment context. Do NOT make claims about final crop yield or weather beyond the forecast window.
-4. Do NOT confuse the user's manually entered model Rainfall input with the 15-day forecast rainfall; keep them distinct.
-5. If the forecast gives insufficient reason to alter the ML order, retain the original ML ranking (`1 -> 2 -> 3`) and explain clearly why the ML order was kept.
-6. Return valid JSON matching the requested schema only."""
+2. Actively compare all 3 candidates against the selected location, current date/month (regional sowing window), current weather (temperature, humidity, conditions), and the dated forecast values (dates, min/max °C, rainfall mm, total forecast rainfall, days covered).
+3. If the ML #1 crop is poorly suited to the location's current weather, near-term rainfall/temperature, or current planting season while another shortlisted candidate with meaningful soil suitability fits current conditions better, REORDER the shortlist and promote that better-suited candidate to `final_rank` 1.
+4. Do NOT promote a candidate with ~0% ML soil suitability (such as a temperate fruit crop in hot plains) just to change the order. If ML #1 stays #1 because the other shortlist options are also unsuitable or have near-0% soil fit, clearly warn the farmer if ML #1 is off-season or mismatched with the location's current dry/wet weather (for example, rice in dry November weather with 0.0 mm rain requires assured irrigation or may not be sown now).
+5. Ground every weather statement in exact supplied figures. Treat the forecast strictly as near-term planting and early-establishment context; do NOT make claims about final yield or weather beyond the forecast window.
+6. Do NOT confuse the farmer's manually entered Model Rainfall input with the forecast rainfall; keep them distinct.
+7. Return valid JSON matching the requested schema only."""
 
-USER_PROMPT = """Farmer's manually entered soil & climate values (used as-is by the ML model):
+USER_PROMPT = """Selected Location & Current Date:
+- Location: {location_name}
+- Current Date: {current_date}
+
+Farmer's manually entered soil & climate values (used as-is by the ML model):
 - Nitrogen (N): {nitrogen} kg/ha
 - Phosphorus (P): {phosphorus} kg/ha
 - Potassium (K): {potassium} kg/ha
@@ -56,7 +61,7 @@ USER_PROMPT = """Farmer's manually entered soil & climate values (used as-is by 
 Top 3 ML Random Forest candidates (immutable ML ranks and scores):
 {candidates_block}
 
-Selected location & near-term weather summary:
+Location current weather & near-term forecast summary:
 {weather_block}
 
 {format_instructions}"""
@@ -180,7 +185,6 @@ def build_chat_model(settings: LLMSettings) -> BaseChatModel:
         gemini_kwargs: dict[str, Any] = {
             "model": model_name,
             "google_api_key": settings.api_key,
-            "temperature": 0,
             "timeout": settings.timeout,
             "max_retries": 2,
             "response_mime_type": "application/json",
@@ -188,6 +192,9 @@ def build_chat_model(settings: LLMSettings) -> BaseChatModel:
         if "2.5" in model_name:
             # Disable hidden thinking tokens so JSON reranking completes in ~1-2s.
             gemini_kwargs["thinking_budget"] = 0
+            gemini_kwargs["temperature"] = 0
+        elif not model_name.startswith("gemini-3"):
+            gemini_kwargs["temperature"] = 0
         return ChatGoogleGenerativeAI(**gemini_kwargs)
 
     raise RerankerUnavailableError(f"Unsupported LLM provider: {provider}")
@@ -233,6 +240,22 @@ def _format_weather_block(weather: WeatherSummary) -> str:
             f"rainfall {day.rainfall_mm:.2f} mm ({day.condition})"
         )
     return "\n".join(lines)
+
+
+def _extract_message_text(response: Any) -> str:
+    """Extract text cleanly whether LangChain returns an AIMessage, str, or content blocks."""
+    content = getattr(response, "content", response)
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts: list[str] = []
+        for block in content:
+            if isinstance(block, str):
+                parts.append(block)
+            elif isinstance(block, dict) and "text" in block:
+                parts.append(str(block["text"]))
+        return "\n".join(parts)
+    return str(content)
 
 
 def _extract_json_payload(raw_text: str) -> str:
@@ -314,6 +337,8 @@ def rerank_with_langchain(
 ) -> RerankOutcome:
     """Run LangChain prompt + Pydantic validation to evaluate near-term weather reranking."""
     resolved_settings = settings or load_llm_settings()
+    used_model_name = resolved_settings.model
+    custom_chat_model = chat_model is not None
 
     if chat_model is None:
         try:
@@ -338,32 +363,77 @@ def rerank_with_langchain(
         ]
     )
 
-    chain = prompt | chat_model | StrOutputParser()
+    current_date = (
+        weather.start_date
+        or (weather.current.observed_at[:10] if weather.current and weather.current.observed_at else None)
+        or "unknown"
+    )
+    prompt_inputs = {
+        "location_name": weather.location.display_name,
+        "current_date": current_date,
+        "nitrogen": features.Nitrogen,
+        "phosphorus": features.Phosphorus,
+        "potassium": features.Potassium,
+        "temperature": features.Temperature,
+        "humidity": features.Humidity,
+        "ph": features.pH,
+        "rainfall": features.Rainfall,
+        "candidates_block": _format_candidates_block(ml_top_3),
+        "weather_block": _format_weather_block(weather),
+        "format_instructions": parser.get_format_instructions(),
+    }
 
     try:
-        raw_output = chain.invoke(
-            {
-                "nitrogen": features.Nitrogen,
-                "phosphorus": features.Phosphorus,
-                "potassium": features.Potassium,
-                "temperature": features.Temperature,
-                "humidity": features.Humidity,
-                "ph": features.pH,
-                "rainfall": features.Rainfall,
-                "candidates_block": _format_candidates_block(ml_top_3),
-                "weather_block": _format_weather_block(weather),
-                "format_instructions": parser.get_format_instructions(),
-            }
-        )
+        raw_msg = (prompt | chat_model).invoke(prompt_inputs)
+        raw_output = _extract_message_text(raw_msg)
     except Exception as exc:
-        logger.warning("LangChain reranker call failed: %s", exc)
-        return build_fallback_ranking(
-            ml_top_3=ml_top_3,
-            ai_status="unavailable",
-            ai_message=_safe_llm_error_summary(exc),
-            provider=resolved_settings.provider,
-            model=resolved_settings.model,
-        )
+        transient_tokens = ("429", "RESOURCE_EXHAUSTED", "503", "UNAVAILABLE")
+        if (
+            not custom_chat_model
+            and resolved_settings.provider in {"gemini", "google"}
+            and used_model_name == "gemini-2.5-flash"
+            and any(tok in str(exc) for tok in transient_tokens)
+        ):
+            last_fb_exc: Exception = exc
+            raw_output = ""
+            for fb_name in ("gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-3.6-flash"):
+                logger.warning("%s hit 429/503; trying fallback %s.", used_model_name, fb_name)
+                try:
+                    fallback_settings = LLMSettings(
+                        provider=resolved_settings.provider,
+                        model=fb_name,
+                        api_key=resolved_settings.api_key,
+                        base_url=resolved_settings.base_url,
+                        timeout=resolved_settings.timeout,
+                    )
+                    fallback_model = build_chat_model(fallback_settings)
+                    raw_msg = (prompt | fallback_model).invoke(prompt_inputs)
+                    raw_output = _extract_message_text(raw_msg)
+                    used_model_name = fb_name
+                    break
+                except Exception as fb_exc:
+                    last_fb_exc = fb_exc
+                    used_model_name = fb_name
+                    if not any(tok in str(fb_exc) for tok in transient_tokens):
+                        break
+            if not raw_output:
+                logger.warning("LangChain reranker fallback failed: %s", last_fb_exc)
+                return build_fallback_ranking(
+                    ml_top_3=ml_top_3,
+                    ai_status="unavailable",
+                    ai_message=_safe_llm_error_summary(last_fb_exc),
+                    provider=resolved_settings.provider,
+                    model=used_model_name,
+                )
+        else:
+            logger.warning("LangChain reranker call failed: %s", exc)
+            return build_fallback_ranking(
+                ml_top_3=ml_top_3,
+                ai_status="unavailable",
+                ai_message=_safe_llm_error_summary(exc),
+                provider=resolved_settings.provider,
+                model=used_model_name,
+            )
 
     try:
         json_text = _extract_json_payload(raw_output)
@@ -412,5 +482,5 @@ def rerank_with_langchain(
         ai_status="ok",
         ai_message=None,
         provider=resolved_settings.provider,
-        model=resolved_settings.model,
+        model=used_model_name,
     )

@@ -25,6 +25,12 @@ A machine learning and weather-aware web application built with **FastAPI**, **s
    - `GET /` and `POST /predict` preserve the classic 7-field form with Pydantic field-level errors, preserved input values, and a mobile-readable side-by-side recommendation + weather view.
    - `POST /api/recommend` returns structured JSON for API clients.
 
+5. **Sheti Mitra — Simple RAG Farming Chatbot**
+   - Uses a bilingual English/Marathi knowledge base in `data/farming.json` (18 short notes covering soil testing, irrigation, sowing, and crop care with official source URLs such as MPKV Rahuri and the Soil Health Card portal).
+   - **Flow:** `Farmer Question → scikit-learn TF-IDF + Cosine Similarity (Top 3 Notes) → Gemini 2.5 Flash Answer + Official Source Links`
+   - `POST /api/chat` answers in simple English or Marathi using only the retrieved notes, shows official source links, and states honestly when a question is outside the notes.
+   - Includes a **मराठी | English** switch in the top-right corner persisted in `localStorage`.
+
 ---
 
 ## Project Structure
@@ -32,16 +38,19 @@ A machine learning and weather-aware web application built with **FastAPI**, **s
 ```text
 Crop-Recommendation-System-Using-ML/
 ├── app.py                     # FastAPI application, routes, and startup artifact loading
-├── schemas.py                 # Pydantic models for validation, weather, and reranking
+├── schemas.py                 # Pydantic models for validation, weather, chat, and reranking
+├── data/
+│   └── farming.json           # Bilingual (English & Marathi) farming notes + official URLs
 ├── services/
 │   ├── ml_service.py          # Model loading and predict_proba() top-3 decoding
-│   ├── weather.py             # Open-Meteo geocoding & 15-day forecast client
+│   ├── weather.py             # Open-Meteo / Visual Crossing / MET Norway forecast client
 │   ├── reranker.py            # Configurable LangChain reranker & strict validation
+│   ├── rag_chat.py            # TF-IDF + cosine similarity retriever & Gemini 2.5 Flash chat
 │   └── recommendation.py      # End-to-end recommendation orchestration
 ├── templates/
-│   └── index.html             # Responsive Jinja2 UI with location picker and comparison table
+│   └── index.html             # Responsive UI with location picker, chat panel, and EN/MR switch
 ├── tests/
-│   └── test_app.py            # Pytest suite covering ML, weather, validation, and AI edge cases
+│   └── test_app.py            # Pytest suite covering ML, weather, AI reranking, and Sheti Mitra
 ├── train_model.py             # Random Forest training and artifact export script
 ├── Crop_recommendation.csv    # Labeled soil & climate dataset (2,200 rows, 22 crops)
 ├── crop_model.pkl             # Trained Random Forest artifact
@@ -121,11 +130,12 @@ pytest
 
 ## API Endpoints
 
-- `GET /` — Web UI form and results view
+- `GET /` — Web UI form, results view, Sheti Mitra chat panel, and Marathi/English switch
 - `POST /predict` — Form endpoint accepting `Nitrogen`, `Phosphorus`, `Potassium`, `Temperature`, `Humidity`, `pH`, `Rainfall`, plus optional location fields
 - `GET /api/locations?q=<place>` — Search locations by village, town, or city with district/state and country metadata
 - `POST /api/recommend` — Structured JSON endpoint accepting soil/climate features and optional `location` or `location_query`
-- `GET /health` — Health check reporting loaded model status and crop class count
+- `POST /api/chat` — Sheti Mitra RAG endpoint accepting `{"question": "...", "language": "en" | "mr"}`
+- `GET /health` — Health check reporting loaded model status, crop class count, and KB note count
 
 ---
 

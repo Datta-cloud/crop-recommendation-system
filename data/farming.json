@@ -1,0 +1,211 @@
+[
+  {
+    "id": "soil_01",
+    "topic": "soil_testing",
+    "title_en": "How to Collect a Soil Sample Properly",
+    "title_mr": "माती परीक्षणासाठी नमुना कसा घ्यावा",
+    "content_en": "Collect soil samples from 8 to 10 random spots across a uniform field in a zig-zag pattern before sowing or fertilizer application. Scrape away surface grass or litter, dig a V-shaped pit 15 cm (6 inches) deep for field crops, mix all subsamples cleanly on a cloth, reduce by quartering to about 500 g, dry in shade, and label the bag.",
+    "content_mr": "पेरणीपूर्वी किंवा खत टाकण्यापूर्वी शेतातील ८ ते १० ठिकाणी झिग-झॅग पद्धतीने मातीचे नमुने घ्या. पृष्ठभागावरील कचरा किंवा गवत बाजूला करून पिकासाठी १५ सेमी (६ इंच) खोल V आकाराचा खड्डा करा. सर्व नमुने स्वच्छ कापडावर एकत्र मिसळा, चार भाग करून सुमारे ५०० ग्रॅम माती सावलीत वाळवा आणि पिशवीवर नाव लिहा.",
+    "keywords": "soil sample collection depth 15 cm zig-zag quartering 500g testing माती नमुना परीक्षण खोली १५ सेमी",
+    "source_name": "Soil Health Card Portal (DAC&FW)",
+    "source_url": "https://soilhealth.dac.gov.in/"
+  },
+  {
+    "id": "soil_02",
+    "topic": "soil_testing",
+    "title_en": "Understanding Your Soil Health Card",
+    "title_mr": "मृद आरोग्य पत्रिका (Soil Health Card) कशी समजून घ्यावी",
+    "content_en": "A Soil Health Card reports 12 soil parameters: macronutrients (N, P, K), secondary nutrient (Sulphur), micronutrients (Zn, Fe, Cu, Mn, B), plus pH, Electrical Conductivity (EC), and Organic Carbon (OC). Use its crop-wise fertilizer dose recommendations instead of applying blanket urea or DAP.",
+    "content_mr": "मृद आरोग्य पत्रिकेमध्ये मातीचे १२ घटक तपासले जातात: नत्र, स्फुरद, पालाश (N, P, K), गंधक (S), सूक्ष्म अन्नद्रव्ये (झिंक, लोह, तांबे, मँगनीज, बोरॉन) तसेच सामू (pH), क्षारता (EC) आणि सेंद्रिय कर्ब (OC). अंदाजे युरिया किंवा डीएपी टाकण्याऐवजी पत्रिकेतील शिफारशीप्रमाणे खत मात्रा द्या.",
+    "keywords": "soil health card 12 parameters NPK OC EC pH fertilizer recommendation मृद आरोग्य पत्रिका सेंद्रिय कर्ब खत शिफारस",
+    "source_name": "Soil Health Card Portal (DAC&FW)",
+    "source_url": "https://soilhealth.dac.gov.in/"
+  },
+  {
+    "id": "soil_03",
+    "topic": "soil_testing",
+    "title_en": "Managing Soil pH with Lime or Gypsum",
+    "title_mr": "आम्ल व क्षारयुक्त जमिनीचा सामू (pH) सुधारणा",
+    "content_en": "Most crops absorb nutrients best between soil pH 6.0 and 7.5. If soil is acidic (pH below 5.5), apply agricultural lime based on soil test recommendations. If soil is sodic or alkaline (pH above 8.5), apply gypsum with adequate drainage and organic manure to improve structure.",
+    "content_mr": "बहुतेक पिकांना ६.० ते ७.५ सामू (pH) असलेल्या जमिनीत अन्नद्रव्ये चांगली मिळतात. जमीन आम्लधर्मी (pH ५.५ पेक्षा कमी) असल्यास माती परीक्षणाप्रमाणे चुना (Lime) वापरा. जमीन क्षारयुक्त किंवा चोपण (pH ८.५ पेक्षा जास्त) असल्यास निचरा सुधारून जिप्सम व शेणखत वापरा.",
+    "keywords": "soil pH acidic alkaline lime gypsum amendment सामू आम्ल जमीन चुना जिप्सम सुधारणा",
+    "source_name": "MPKV Rahuri",
+    "source_url": "https://mpkv.ac.in/"
+  },
+  {
+    "id": "soil_04",
+    "topic": "soil_testing",
+    "title_en": "Improving Soil Organic Carbon and Micronutrients",
+    "title_mr": "जमिनीतील सेंद्रिय कर्ब आणि सूक्ष्म अन्नद्रव्ये वाढवणे",
+    "content_en": "Low organic carbon (below 0.5%) reduces water retention and fertilizer efficiency. Incorporate well-decomposed FYM, compost, vermicompost, or green manuring crops like dhaincha before sowing. Apply zinc sulphate or ferrous sulphate only where soil testing confirms a deficiency.",
+    "content_mr": "सेंद्रिय कर्ब ०.५% पेक्षा कमी असल्यास जमिनीची पाणी धरून ठेवण्याची क्षमता व खत कार्यक्षमता घटते. पेरणीपूर्वी चांगले कुजलेले शेणखत, कंपोस्ट, गांडूळ खत किंवा धैंचासारखे हिरवळीचे खत गाडा. माती परीक्षणात कमतरता आढळल्यासच झिंक किंवा फेरस सल्फेट द्या.",
+    "keywords": "organic carbon FYM compost green manure zinc iron micronutrients सेंद्रिय कर्ब शेणखत गांडूळ खत झिंक सूक्ष्म अन्नद्रव्ये",
+    "source_name": "ICAR — Indian Council of Agricultural Research",
+    "source_url": "https://icar.org.in/"
+  },
+  {
+    "id": "soil_05",
+    "topic": "soil_testing",
+    "title_en": "Frequency and Timing of Soil Testing",
+    "title_mr": "माती परीक्षण कधी आणि किती वर्षांनी करावे",
+    "content_en": "Test agricultural soil once every 2 years (or annually for intensive vegetable and cash crops). Avoid sampling right after applying fertilizer, lime, or heavy rain; wait at least 4 to 6 weeks after the previous harvest and fertilization.",
+    "content_mr": "साधारण पिकांसाठी दर २ वर्षांनी आणि भाजीपाला किंवा बागायती पिकांसाठी दरवर्षी माती परीक्षण करावे. रासायनिक खते, चुना टाकल्यानंतर लगेच किंवा अतिपावसानंतर नमुना घेऊ नये; मागील खत मात्रेनंतर किमान ४ ते ६ आठवडे थांबून नमुना घ्यावा.",
+    "keywords": "soil testing frequency timing 2 years after harvest fertilizer माती परीक्षण केव्हा किती वर्षांनी",
+    "source_name": "Soil Health Card Portal (DAC&FW)",
+    "source_url": "https://soilhealth.dac.gov.in/"
+  },
+  {
+    "id": "irrig_01",
+    "topic": "irrigation",
+    "title_en": "Benefits of Drip Irrigation and Scheduling",
+    "title_mr": "ठिबक सिंचनाचे फायदे आणि पाणी व्यवस्थापन",
+    "content_en": "Drip irrigation delivers water slowly near the root zone, saving 40% to 60% water compared to flood irrigation and reducing weed growth. Run drip systems based on crop stage and daily evaporation rather than fixed calendar intervals, and flush lateral lines regularly to prevent clogging.",
+    "content_mr": "ठिबक सिंचनामुळे थेट मुळांच्या कक्षेत पाणी दिले जाते, त्यामुळे पाटपाण्याच्या तुलनेत ४०% ते ६०% पाण्याची बचत होते आणि तण कमी होते. पिकाची अवस्था आणि बाष्पीभवनानुसार ठिबक चालवावे व नळ्या अडकू नयेत म्हणून नियमित फ्लशिंग करावे.",
+    "keywords": "drip irrigation water saving root zone scheduling flushing ठिबक सिंचन पाणी बचत वेळापत्रक",
+    "source_name": "MPKV Rahuri",
+    "source_url": "https://mpkv.ac.in/"
+  },
+  {
+    "id": "irrig_02",
+    "topic": "irrigation",
+    "title_en": "Critical Growth Stages for Irrigation",
+    "title_mr": "पिकांना पाणी देण्याच्या संवेदनशील अवस्था",
+    "content_en": "When irrigation water is limited, prioritize moisture at critical stages: crown root initiation and flowering in wheat, tasseling and silking in maize, flowering and boll formation in cotton, and pod development in pulses. Moisture stress during flowering causes sharp yield loss.",
+    "content_mr": "पाणी मर्यादित असल्यास पिकांच्या संवेदनशील अवस्थांत सिंचन करावे: गव्हात मुकुटमुळे फुटताना व फुलोऱ्यात, मक्यात तुरा व कणीस लागताना, कापसात पाते व बोंड धरताना आणि कडधान्यांत शेंगा भरताना. फुलोरा अवस्थेत पाण्याचा ताण बसल्यास उत्पादन मोठ्या प्रमाणात घटते.",
+    "keywords": "critical growth stages irrigation flowering pod wheat maize cotton pulses संवेदनशील अवस्था फुलोरा सिंचन गहू मका कापूस",
+    "source_name": "ICAR — Indian Council of Agricultural Research",
+    "source_url": "https://icar.org.in/"
+  },
+  {
+    "id": "irrig_03",
+    "topic": "irrigation",
+    "title_en": "Conserving Soil Moisture with Mulching",
+    "title_mr": "आच्छादन (Mulching) वापरून जमिनीतील ओलावा टिकवणे",
+    "content_en": "Applying organic straw mulch (crop residue) or plastic mulch between crop rows lowers soil temperature, cuts evaporation loss, and suppresses early weeds. Mulching helps crops survive short dry spells during the 10 to 15 days after sowing.",
+    "content_mr": "पिकांच्या दोन ओळींमध्ये पालापाचोळा, तुराट्या किंवा प्लॅस्टिक मल्चिंग केल्याने जमिनीचे तापमान नियंत्रित राहते, बाष्पीभवन कमी होते आणि तण नियंत्रित राहते. पेरणीनंतरच्या १० ते १५ दिवसांच्या कोरड्या हवामानात पिकांचे संरक्षण होते.",
+    "keywords": "mulching moisture conservation dry spell straw evaporation आच्छादन मल्चिंग ओलावा बाष्पीभवन कोरडा काळ",
+    "source_name": "Maharashtra Agriculture Department",
+    "source_url": "https://krishi.maharashtra.gov.in/"
+  },
+  {
+    "id": "irrig_04",
+    "topic": "irrigation",
+    "title_en": "Preventing Waterlogging and Poor Drainage",
+    "title_mr": "पाणी साचणे (पाणथळ) रोखणे आणि निचरा व्यवस्थापन",
+    "content_en": "Standing water for more than 24 to 48 hours starves roots of oxygen in crops like maize, pigeonpea, soybean, and vegetables, leading to yellowing and root rot. Provide shallow surface drainage channels and raised beds or ridges-and-furrows in heavy black cotton soils.",
+    "content_mr": "मका, तूर, सोयाबीन आणि भाजीपाला पिकांत २४ ते ४८ तासांपेक्षा जास्त पाणी साचल्यास मुळांना ऑक्सिजन मिळत नाही आणि मुळकुज होते. भारी काळ्या जमिनीत सरी-वरंबा किंवा गादीवाफा पद्धत वापरावी आणि अतिरिक्त पाण्याचा निचरा करण्यासाठी चर काढावेत.",
+    "keywords": "waterlogging drainage raised bed ridges furrows heavy soil root rot पाणी निचरा सरी वरंबा गादीवाफा भारी जमीन",
+    "source_name": "MPKV Rahuri",
+    "source_url": "https://mpkv.ac.in/"
+  },
+  {
+    "id": "irrig_05",
+    "topic": "irrigation",
+    "title_en": "Water Management in Paddy (Rice)",
+    "title_mr": "भात (तांदूळ) पिकातील पाणी व्यवस्थापन",
+    "content_en": "Paddy does not require deep continuous flooding throughout the season. Maintain 2 to 5 cm standing water during transplanting establishment, active tillering, and flowering; practice Alternate Wetting and Drying (AWD) during vegetative stages to save water and strengthen roots.",
+    "content_mr": "भात पिकात संपूर्ण हंगामात सतत खोल पाणी साठवून ठेवण्याची गरज नसते. पुनर्लागवड, फुटवे येताना आणि फुलोऱ्यात २ ते ५ सेमी पाणी ठेवावे. इतर काळात 'आळीपाळीने ओले व कोरडे' (AWD) तंत्र वापरल्यास पाण्याची बचत होते व मुळे मजबूत होतात.",
+    "keywords": "rice paddy irrigation AWD standing water transplanting tillering भात तांदूळ पाणी व्यवस्थापन",
+    "source_name": "ICAR — Indian Council of Agricultural Research",
+    "source_url": "https://icar.org.in/"
+  },
+  {
+    "id": "sowing_01",
+    "topic": "sowing",
+    "title_en": "Seed Germination Test Before Sowing",
+    "title_mr": "पेरणीपूर्वी बियाण्याची उगवण क्षमता तपासणी",
+    "content_en": "Test seed germination 7 to 10 days before sowing by wrapping 100 seeds in moist paper or cloth and counting sprouted seeds after 5 to 7 days. Aim for at least 70% to 85% germination depending on the crop; adjust seed rate slightly if germination is marginally lower.",
+    "content_mr": "पेरणीपूर्वी ७ ते १० दिवस आधी १०० बिया ओल्या कापडात किंवा कागदात गुंडाळून ठेवा आणि ५ ते ७ दिवसांनी उगवण मोजा. पिकाप्रमाणे किमान ७०% ते ८५% उगवण असावी; उगवण किंचित कमी असल्यास शिफारशीप्रमाणे बियाणे प्रमाण थोडे वाढवावे.",
+    "keywords": "seed germination test 100 seeds sowing rate उगवण क्षमता चाचणी बियाणे पेरणी",
+    "source_name": "Farmer's Portal (Govt. of India)",
+    "source_url": "https://farmer.gov.in/"
+  },
+  {
+    "id": "sowing_02",
+    "topic": "sowing",
+    "title_en": "Pre-Sowing Seed Treatment for Disease Protection",
+    "title_mr": "रोग प्रतिबंधासाठी पेरणीपूर्वी बीजप्रक्रिया",
+    "content_en": "Treat seeds before sowing to protect seedlings from soil-borne fungi and early pests. First apply recommended fungicide or bio-agent like Trichoderma (4 to 5 g/kg seed), let dry in shade, and for pulses coat with Rhizobium and PSB biofertilizer just before sowing.",
+    "content_mr": "जमिनीतून येणारे बुरशीजन्य रोग व सुरुवातीच्या किडींपासून रोपांचे संरक्षण करण्यासाठी बीजप्रक्रिया करावी. प्रथम शिफारस केलेली बुरशीनाशक किंवा ट्रायकोडर्मा (४ ते ५ ग्रॅम प्रति किलो) प्रक्रिया करून सावलीत वाळवा आणि कडधान्यांना पेरणीपूर्वी रायझोबियम व पीएसबी जीवाणू संवर्धक लावा.",
+    "keywords": "seed treatment Trichoderma Rhizobium PSB fungi sowing बीजप्रक्रिया ट्रायकोडर्मा रायझोबियम",
+    "source_name": "MPKV Rahuri",
+    "source_url": "https://mpkv.ac.in/"
+  },
+  {
+    "id": "sowing_03",
+    "topic": "sowing",
+    "title_en": "Sowing Depth, Spacing, and Soil Moisture",
+    "title_mr": "पेरणीची खोली, अंतर आणि जमिनीतील ओलावा",
+    "content_en": "Sow only when adequate soil moisture is available in the top 5 to 7 cm seedbed—never dry-sow ahead of uncertain rain unless specifically recommended. Place small seeds (like sesame or pearl millet) 2 to 3 cm deep and bold seeds (like chickpea, maize, or groundnut) 4 to 5 cm deep at recommended row spacing.",
+    "content_mr": "जमिनीच्या वरच्या ५ ते ७ सेमी थरात पुरेशी ओल (वाफसा) असतानाच पेरणी करावी. लहान बियाणे (तीळ, बाजरी) २ ते ३ सेमी खोल तर मोठे बियाणे (हरभरा, मका, भुईमूग) ४ ते ५ सेमी खोल आणि शिफारस केलेल्या ओळींच्या अंतरावर पेरावे.",
+    "keywords": "sowing depth spacing soil moisture germination seedbed पेरणी खोली अंतर ओलावा वाफसा",
+    "source_name": "Maharashtra Agriculture Department",
+    "source_url": "https://krishi.maharashtra.gov.in/"
+  },
+  {
+    "id": "sowing_04",
+    "topic": "sowing",
+    "title_en": "Kharif and Rabi Sowing Windows and Crop Rotation",
+    "title_mr": "खरीप व रब्बी पेरणी हंगाम आणि पीक फेरपालट",
+    "content_en": "Sow Kharif crops with the onset of regular monsoon (June–July) and Rabi crops after monsoon withdrawal (October–November) when temperatures cool. Rotate cereals (rice, maize, wheat) with legumes (chickpea, mungbean, blackgram, pigeonpea) to fix nitrogen naturally and break pest cycles.",
+    "content_mr": "खरीप पिकांची पेरणी नियमित मान्सून सुरू झाल्यावर (जून–जुलै) तर रब्बी पिकांची पेरणी थंडी सुरू होताना (ऑक्टोबर–नोव्हेंबर) करावी. तृणधान्य पिकांनंतर कडधान्य पिके (हरभरा, मूग, उडीद, तूर) घेतल्याने जमिनीत नत्र वाढतो आणि किडी-रोगांची साखळी तुटते.",
+    "keywords": "Kharif Rabi sowing window crop rotation legumes cereals खरीप रब्बी पेरणी पीक फेरपालट कडधान्य",
+    "source_name": "Farmer's Portal (Govt. of India)",
+    "source_url": "https://farmer.gov.in/"
+  },
+  {
+    "id": "care_01",
+    "topic": "crop_care",
+    "title_en": "Split Application of Nitrogen Fertilizer",
+    "title_mr": "नत्र खताची विभागून मात्रा (Split Application)",
+    "content_en": "Avoid applying all nitrogen (urea) at sowing, because heavy rain or irrigation leaches it away. Apply phosphorus and potassium as basal doses at sowing, and split nitrogen into 2 to 3 doses matching active tillering, branching, or panicle initiation stages.",
+    "content_mr": "संपूर्ण नत्र (युरिया) पेरणीच्या वेळी एकदम देऊ नये, कारण पावसाने किंवा पाण्यासोबत ते वाहून जाते. स्फुरद व पालाश पेरणीवेळी द्यावे आणि नत्र खत पिकाच्या फुटवे, फांद्या किंवा ओंब्या येण्याच्या अवस्थेत २ ते ३ हप्त्यांत विभागून द्यावे.",
+    "keywords": "split nitrogen urea fertilizer basal top dressing leaching नत्र युरिया विभागून खत मात्रा",
+    "source_name": "Soil Health Card Portal (DAC&FW)",
+    "source_url": "https://soilhealth.dac.gov.in/"
+  },
+  {
+    "id": "care_02",
+    "topic": "crop_care",
+    "title_en": "Timely Weed Management in Early Growth",
+    "title_mr": "सुरुवातीच्या काळात वेळेवर तण नियंत्रण",
+    "content_en": "The first 30 to 45 days after sowing are the most critical period for weed competition. Perform inter-cultivation (hoeing/hand weeding) at 20 and 40 days after sowing to conserve moisture, aerate roots, and prevent yield loss.",
+    "content_mr": "पेरणीपासून पहिले ३० ते ४५ दिवस तण नियंत्रणासाठी अत्यंत महत्त्वाचे असतात. पेरणीनंतर २० आणि ४० दिवसांनी कोळपणी व खुरपणी केल्यास जमिनीत हवा खेळती राहते, ओलावा टिकतो आणि उत्पादनातील घट टळते.",
+    "keywords": "weed control hoeing weeding first 30 45 days inter-cultivation तण नियंत्रण कोळपणी खुरपणी",
+    "source_name": "MPKV Rahuri",
+    "source_url": "https://mpkv.ac.in/"
+  },
+  {
+    "id": "care_03",
+    "topic": "crop_care",
+    "title_en": "Integrated Pest Management (IPM) Basics",
+    "title_mr": "एकात्मिक कीड व्यवस्थापन (IPM)",
+    "content_en": "Monitor fields weekly instead of spraying pesticides on a fixed schedule. Use pheromone traps, yellow sticky traps, neem-based sprays (Azadirachtin 1500 ppm), and bird perches first, and apply chemical insecticides only when pest counts cross the Economic Threshold Level (ETL).",
+    "content_mr": "ठराविक दिवसांनी अंदाजे फवारणी करण्याऐवजी दर आठवड्याला पिकाची पाहणी करा. प्रथम कामगंध सापळे, पिवळे चिकट सापळे, निंबोळी अर्क किंवा अझाडायरेक्टिन व पक्षिथांबे वापरा आणि कीड आर्थिक नुकसान पातळी (ETL) ओलांडल्यासच शिफारस केलेली कीटकनाशके फवारा.",
+    "keywords": "IPM pest control pheromone trap neem ETL spraying एकात्मिक कीड व्यवस्थापन कामगंध सापळे निंबोळी अर्क",
+    "source_name": "ICAR — Indian Council of Agricultural Research",
+    "source_url": "https://icar.org.in/"
+  },
+  {
+    "id": "care_04",
+    "topic": "crop_care",
+    "title_en": "Weather-Safe Spraying and Field Care",
+    "title_mr": "हवामानानुसार सुरक्षित फवारणी व पीक संरक्षण",
+    "content_en": "Check the weather forecast before spraying nutrients or crop protection chemicals. Spray during calm, cool morning or late evening hours; avoid spraying in strong winds, midday heat above 35°C, or within 4 to 6 hours before expected rainfall so chemicals are not washed off.",
+    "content_mr": "फवारणी करण्यापूर्वी हवामानाचा अंदाज तपासा. शांत आणि थंड सकाळी किंवा संध्याकाळी फवारणी करावी; जोराचा वारा, दुपारचे ३५°C पेक्षा जास्त तापमान किंवा पुढील ४ ते ६ तासांत पावसाची शक्यता असताना फवारणी टाळावी, जेणेकरून औषध धुऊन जाणार नाही.",
+    "keywords": "weather spraying wind heat rain forecast morning evening फवारणी हवामान वारा पाऊस सकाळ संध्याकाळ",
+    "source_name": "Maharashtra Agriculture Department",
+    "source_url": "https://krishi.maharashtra.gov.in/"
+  },
+  {
+    "id": "sowing_05",
+    "topic": "sowing",
+    "title_en": "Choosing Which Crop to Sow by Season, Soil, and Rainfall",
+    "title_mr": "हंगाम, माती आणि पावसावर आधारित कोणते पीक पेरावे",
+    "content_en": "Choose which crop to sow based on the season, soil type, and irrigation availability. In Kharif (June–July monsoon), crops like rice, maize, cotton, soybean, and pigeonpea perform well; in Rabi (October–November cool dry season), chickpea, lentil, wheat, and irrigated maize are preferred. Always match the crop to your soil test (N, P, K, pH) and near-term rainfall or irrigation capacity.",
+    "content_mr": "कोणते पीक पेरावे हे हंगाम, जमिनीचा प्रकार आणि सिंचनाच्या उपलब्धतेवर ठरवावे. खरीप हंगामात (जून–जुलै पाऊस) भात, मका, कापूस, सोयाबीन आणि तूर तर रब्बी हंगामात (ऑक्टोबर–नोव्हेंबर थंड कोरडे हवामान) हरभरा, मसूर, गहू आणि बागायती मका यांची निवड करावी. माती परीक्षण (N, P, K, pH) आणि जवळच्या पावसाचा अंदाज पाहूनच पिकाची निवड करावी.",
+    "keywords": "which crop should i sow best crop choose crop selection season rabi kharif कोणते पीक पेरावे कोणते पीक घ्यावे निवड हंगाम",
+    "source_name": "Farmer's Portal (Govt. of India)",
+    "source_url": "https://farmer.gov.in/"
+  }
+]
