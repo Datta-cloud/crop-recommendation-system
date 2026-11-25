@@ -1,97 +1,125 @@
-# 🌾 Crop Recommendation System
-### A Machine Learning Project
+# Crop Recommendation System
+
+A machine learning web application built with **Python**, **scikit-learn**, and **Flask** that recommends the optimal crop to cultivate based on soil nutrient composition and local climate conditions.
 
 ---
 
-## 📌 What Does This Project Do?
+## Overview
 
-This project uses **Machine Learning** to recommend the best crop to grow based on:
-- Soil nutrients (Nitrogen, Phosphorus, Potassium)
-- Climate conditions (Temperature, Humidity, Rainfall)
-- Soil quality (pH level)
+Selecting the right crop for a given soil and climate profile directly impacts agricultural yield and resource efficiency. This project trains a multi-class **Random Forest** classifier on 2,200 labeled agricultural samples across 22 crop varieties and serves real-time predictions through a Flask web interface.
 
-A farmer enters 7 values → the ML model analyses them → it suggests the best crop!
+### Input Features (7 Parameters)
+
+| Feature | Description | Unit | Dataset Range |
+| :--- | :--- | :--- | :--- |
+| `N` | Nitrogen content ratio in soil | kg/ha | `0 – 140` |
+| `P` | Phosphorus content ratio in soil | kg/ha | `5 – 145` |
+| `K` | Potassium content ratio in soil | kg/ha | `5 – 205` |
+| `temperature` | Ambient temperature | °C | `8.83 – 43.68` |
+| `humidity` | Relative humidity | % | `14.26 – 99.98` |
+| `ph` | Soil pH value | 0–14 | `3.50 – 9.94` |
+| `rainfall` | Annual/seasonal rainfall | mm | `20.21 – 298.56` |
 
 ---
 
+## Dataset
 
-## 🧠 How Does Machine Learning Work Here?
+- **Source file:** `Crop_recommendation.csv`
+- **Samples:** 2,200 rows, 8 columns (7 numerical features + 1 target `label`), zero missing values
+- **Classes:** 22 balanced crop categories (100 samples per class):
+  `apple`, `banana`, `blackgram`, `chickpea`, `coconut`, `coffee`, `cotton`, `grapes`, `jute`, `kidneybeans`, `lentil`, `maize`, `mango`, `mothbeans`, `mungbean`, `muskmelon`, `orange`, `papaya`, `pigeonpeas`, `pomegranate`, `rice`, `watermelon`
 
-### The Data
-We have **2200 examples** of crops with their ideal conditions.
-Each example has 7 numbers → 1 crop name.
+---
 
-Example rows from the dataset:
-| N | P | K | Temp | Humidity | pH | Rainfall | Crop |
-|---|---|---|------|----------|----|----------|------|
-| 90 | 42 | 43 | 20.8 | 82 | 6.5 | 203 | rice |
-| 85 | 58 | 41 | 21.8 | 80 | 7.0 | 227 | rice |
-| 60 | 55 | 44 | 23.0 | 82 | 7.8 | 263 | jute |
+## Model & Evaluation
 
-### The Model: Random Forest
-Think of it like asking **100 experts** for advice:
-- Each "expert" is a Decision Tree
-- All 100 trees vote for a crop
-- The crop with the most votes wins!
+- **Algorithm:** `RandomForestClassifier` (`n_estimators=100`, `random_state=42`)
+- **Train / Test Split:** 80% training (`1,760` samples) / 20% testing (`440` samples) with `random_state=42`
+- **Test Accuracy:** **99.32%**
 
-### The Training Process
+### Feature Importance (Trained Model)
+
+| Rank | Feature | Importance |
+| :---: | :--- | :---: |
+| 1 | `rainfall` | `0.227` |
+| 2 | `humidity` | `0.211` |
+| 3 | `K` (Potassium) | `0.181` |
+| 4 | `P` (Phosphorus) | `0.144` |
+| 5 | `N` (Nitrogen) | `0.109` |
+| 6 | `temperature` | `0.076` |
+| 7 | `ph` | `0.052` |
+
+---
+
+## Project Structure
+
+```text
+Crop-Recommendation-System-Using-ML/
+├── app.py                     # Flask application and /predict inference route
+├── train_model.py             # Data loading, model training, evaluation, and serialization
+├── Crop_recommendation.csv    # Labeled soil & climate dataset (2,200 samples)
+├── crop_model.pkl             # Serialized Random Forest model
+├── crop_names.pkl             # Serialized sorted crop class list
+├── requirements.txt           # Python dependencies
+├── .gitignore                 # Git ignore rules for virtualenvs and caches
+├── templates/
+│   └── index.html             # Responsive web UI for input and prediction display
+└── README.md
 ```
-Raw Data → Split 80%/20% → Train on 80% → Test on 20% → Save Model
+
+---
+
+## Setup & Usage
+
+### 1. Clone and Create a Virtual Environment
+
+```bash
+python -m venv venv
+# Windows
+venv\Scripts\activate
+# macOS / Linux
+source venv/bin/activate
 ```
 
-- **Training data** = what the model learns from
-- **Test data** = data the model has never seen (used to measure accuracy)
+### 2. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Train the Model (Optional)
+
+Pre-trained model artifacts (`crop_model.pkl` and `crop_names.pkl`) are included. To retrain from `Crop_recommendation.csv` and print evaluation metrics:
+
+```bash
+python train_model.py
+```
+
+### 4. Run the Web Application
+
+```bash
+python app.py
+```
+
+Open `http://127.0.0.1:5000` in your browser, enter the 7 soil/climate values, and submit to view the recommended crop.
+
+*(Set `FLASK_DEBUG=true` in your environment if you want Flask auto-reload during development.)*
 
 ---
 
-## 📊 What is Accuracy?
+## Sample Test Inputs
 
-After training, we test the model on new data.
-- **99% accuracy** = out of 100 predictions, 99 are correct
-
----
-
-## 🔢 Input Value Ranges
-
-| Input | Unit | Min | Max | Example |
-|-------|------|-----|-----|---------|
-| Nitrogen (N) | kg/ha | 0 | 140 | 90 |
-| Phosphorus (P) | kg/ha | 5 | 145 | 42 |
-| Potassium (K) | kg/ha | 5 | 205 | 43 |
-| Temperature | °C | 8 | 44 | 25 |
-| Humidity | % | 14 | 100 | 80 |
-| pH | 0-14 | 3.5 | 9.9 | 6.5 |
-| Rainfall | mm | 20 | 300 | 200 |
+| N | P | K | Temperature (°C) | Humidity (%) | pH | Rainfall (mm) | Predicted Crop |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
+| 90 | 42 | 43 | 20.88 | 82.00 | 6.50 | 202.94 | `rice` |
+| 18 | 30 | 29 | 26.76 | 92.86 | 6.42 | 224.59 | `coconut` |
+| 89 | 47 | 38 | 25.52 | 72.25 | 6.00 | 151.89 | `jute` |
+| 24 | 130 | 195 | 30.00 | 81.54 | 6.11 | 67.13 | `grapes` |
 
 ---
 
-## 🌱 Crops the System Can Predict (22 crops)
+## Tech Stack
 
-apple, banana, blackgram, chickpea, coconut, coffee, cotton, grapes, jute, kidneybeans, lentil, maize, mango, mothbeans, mungbean, muskmelon, orange, papaya, pigeonpeas, pomegranate, **rice**, watermelon
-
----
-
-## 🧪 Test Cases (Try These!)
-
-| N | P | K | Temp | Humidity | pH | Rainfall | Expected |
-|---|---|---|------|----------|----|----------|---------|
-| 90 | 42 | 43 | 20.8 | 82 | 6.5 | 203 | Rice |
-| 0 | 20 | 10 | 27 | 85 | 5.7 | 220 | Coconut |
-| 60 | 55 | 44 | 23 | 82 | 7.8 | 263 | Jute |
-| 30 | 60 | 200 | 25 | 50 | 6.5 | 100 | Grapes |
-
----
-
-## 📚 Key Concepts Learned
-
-By completing this project, you learned:
-
-1. **Python Basics** — Reading files, functions, loops
-2. **Pandas** — Working with datasets (like Excel in Python)
-3. **Machine Learning** — Training a model on data
-4. **Flask** — Building a web application
-5. **HTML/CSS** — Creating a webpage interface
-6. **Pickle** — Saving and loading ML models
-
-
-Made with 🌱 Python + Flask + Scikit-Learn 
+- **Backend:** Python, Flask
+- **Machine Learning & Data:** scikit-learn, NumPy, pandas
+- **Frontend:** HTML5, CSS3 (Jinja2 templates)

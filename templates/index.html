@@ -282,6 +282,17 @@
       color: var(--text-muted);
     }
 
+    .error-box {
+      margin: 0 32px 24px;
+      padding: 14px 18px;
+      background: #fdf0ef;
+      border: 1.5px solid #e57373;
+      border-radius: 12px;
+      color: #8c1d18;
+      font-size: 0.88rem;
+      text-align: center;
+    }
+
     /* =============================================
        FOOTER
        ============================================= */
@@ -322,17 +333,17 @@
         <div class="grid-3">
           <div class="field">
             <label>Nitrogen (N)</label>
-            <input type="number" name="Nitrogen" placeholder="e.g. 90" min="0" max="200" step="0.1" required/>
+            <input type="number" name="Nitrogen" placeholder="e.g. 90" min="0" max="200" step="0.1" value="{{ form_data.get('Nitrogen', '') if form_data else '' }}" required/>
             <div class="hint">Range: 0 – 140</div>
           </div>
           <div class="field">
             <label>Phosphorus (P)</label>
-            <input type="number" name="Phosphorus" placeholder="e.g. 42" min="0" max="200" step="0.1" required/>
+            <input type="number" name="Phosphorus" placeholder="e.g. 42" min="0" max="200" step="0.1" value="{{ form_data.get('Phosphorus', '') if form_data else '' }}" required/>
             <div class="hint">Range: 5 – 145</div>
           </div>
           <div class="field">
             <label>Potassium (K)</label>
-            <input type="number" name="Potassium" placeholder="e.g. 43" min="0" max="200" step="0.1" required/>
+            <input type="number" name="Potassium" placeholder="e.g. 43" min="0" max="205" step="0.1" value="{{ form_data.get('Potassium', '') if form_data else '' }}" required/>
             <div class="hint">Range: 5 – 205</div>
           </div>
         </div>
@@ -342,12 +353,12 @@
         <div class="grid-2">
           <div class="field">
             <label>Temperature (°C)</label>
-            <input type="number" name="Temperature" placeholder="e.g. 25" min="0" max="60" step="0.1" required/>
+            <input type="number" name="Temperature" placeholder="e.g. 25" min="0" max="60" step="0.1" value="{{ form_data.get('Temperature', '') if form_data else '' }}" required/>
             <div class="hint">Range: 8 – 44 °C</div>
           </div>
           <div class="field">
             <label>Humidity (%)</label>
-            <input type="number" name="Humidity" placeholder="e.g. 80" min="0" max="100" step="0.1" required/>
+            <input type="number" name="Humidity" placeholder="e.g. 80" min="0" max="100" step="0.1" value="{{ form_data.get('Humidity', '') if form_data else '' }}" required/>
             <div class="hint">Range: 14 – 100 %</div>
           </div>
         </div>
@@ -357,18 +368,22 @@
         <div class="grid-2">
           <div class="field">
             <label>Soil pH</label>
-            <input type="number" name="pH" placeholder="e.g. 6.5" min="0" max="14" step="0.01" required/>
+            <input type="number" name="pH" placeholder="e.g. 6.5" min="0" max="14" step="0.01" value="{{ form_data.get('pH', '') if form_data else '' }}" required/>
             <div class="hint">Range: 3.5 – 9.9</div>
           </div>
           <div class="field">
             <label>Rainfall (mm)</label>
-            <input type="number" name="Rainfall" placeholder="e.g. 200" min="0" max="300" step="0.1" required/>
+            <input type="number" name="Rainfall" placeholder="e.g. 200" min="0" max="300" step="0.1" value="{{ form_data.get('Rainfall', '') if form_data else '' }}" required/>
             <div class="hint">Range: 20 – 300 mm</div>
           </div>
         </div>
 
         <button type="submit" class="btn-submit">🌾 Recommend Best Crop</button>
       </form>
+
+      {% if error %}
+      <div class="error-box">{{ error }}</div>
+      {% endif %}
 
       <!-- ====== RESULT (only shown after prediction) ====== -->
       {% if result %}
@@ -384,7 +399,7 @@
   </div><!-- end container -->
 
   <div class="footer">
-    Made with 🌱 using Flask + Machine Learning &nbsp;·&nbsp;
+    Crop Recommendation System &nbsp;·&nbsp; Built with Flask &amp; scikit-learn
   </div>
 
 </body>

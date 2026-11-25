@@ -1,149 +1,66 @@
-# ============================================================
-#  CROP RECOMMENDATION SYSTEM — MODEL TRAINING
-#  For 1st Year Engineering Students
-#  Run this ONCE to train and save the model.
-# ============================================================
+"""Training and evaluation pipeline for the Crop Recommendation Random Forest model."""
 
-# ---- STEP 0: Import Libraries ----
-import pandas as pd          # for reading CSV files
-import numpy as np           # for number arrays
-import pickle                # for saving/loading models
-from sklearn.ensemble import RandomForestClassifier   # our ML model
-from sklearn.model_selection import train_test_split  # to split data
-from sklearn.metrics import accuracy_score            # to check accuracy
-import matplotlib.pyplot as plt  # for charts (optional)
+from pathlib import Path
+import pickle
 
-print("📦 All libraries imported successfully!\n")
+import numpy as np
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
 
-# ============================================================
-# STEP 1: LOAD THE DATASET
-# ============================================================
-# Read the CSV file into a DataFrame (like an Excel table in Python)
-df = pd.read_csv('Crop_recommendation.csv')
+BASE_DIR = Path(__file__).resolve().parent
+DATA_PATH = BASE_DIR / "Crop_recommendation.csv"
+MODEL_PATH = BASE_DIR / "crop_model.pkl"
+LABELS_PATH = BASE_DIR / "crop_names.pkl"
 
-print("📊 Dataset loaded!")
-print(f"   Rows: {df.shape[0]},  Columns: {df.shape[1]}")
-print(f"   Columns: {list(df.columns)}")
-print(f"\n   First 3 rows:\n{df.head(3)}\n")
+FEATURE_COLUMNS = ["N", "P", "K", "temperature", "humidity", "ph", "rainfall"]
 
-# ============================================================
-# STEP 2: UNDERSTAND THE DATA
-# ============================================================
-print("🌾 Crops in dataset:", df['label'].unique())
-print(f"   Total unique crops: {df['label'].nunique()}\n")
 
-print("📈 Basic statistics:")
-print(df.describe().round(2))
-print()
+def main() -> None:
+    df = pd.read_csv(DATA_PATH)
+    print(f"Dataset loaded: {df.shape[0]} rows, {df.shape[1]} columns")
+    print(f"Unique crop classes: {df['label'].nunique()}")
 
-# ============================================================
-# STEP 3: ENCODE CROP NAMES TO NUMBERS
-# ============================================================
-# ML models work with numbers, not text.
-# So we convert "rice" → 0, "maize" → 1, etc.
+    crop_list = sorted(df["label"].unique())
+    crop_to_num = {crop: idx for idx, crop in enumerate(crop_list)}
+    df["crop_num"] = df["label"].map(crop_to_num)
 
-crop_list = sorted(df['label'].unique())  # sorted list of all crops
-crop_to_num = {crop: i for i, crop in enumerate(crop_list)}  # dictionary: crop → number
+    # Convert to NumPy arrays so inference inputs match training format cleanly.
+    X = df[FEATURE_COLUMNS].to_numpy(dtype=float)
+    y = df["crop_num"].to_numpy()
 
-print("🔢 Crop name → Number mapping:")
-for crop, num in crop_to_num.items():
-    print(f"   {num:2d} = {crop}")
-print()
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+    print(f"Train samples: {X_train.shape[0]} | Test samples: {X_test.shape[0]}")
 
-# Add a new column 'crop_num' with the encoded numbers
-df['crop_num'] = df['label'].map(crop_to_num)
+    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    model.fit(X_train, y_train)
 
-# ============================================================
-# STEP 4: SPLIT INTO FEATURES (X) AND TARGET (y)
-# ============================================================
-# X = inputs (N, P, K, temperature, humidity, ph, rainfall)
-# y = output (crop number)
+    y_pred = model.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    print(f"Test Accuracy: {accuracy * 100:.2f}%")
 
-X = df[['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall']]
-y = df['crop_num']
+    print("\nFeature Importances:")
+    for feat, imp in sorted(
+        zip(FEATURE_COLUMNS, model.feature_importances_), key=lambda item: -item[1]
+    ):
+        print(f"  {feat:12s} {imp:.4f}")
 
-print(f"✅ Features (X) shape: {X.shape}")   # Should be (2200, 7)
-print(f"✅ Target (y) shape:   {y.shape}\n") # Should be (2200,)
+    with open(MODEL_PATH, "wb") as file:
+        pickle.dump(model, file)
 
-# ============================================================
-# STEP 5: SPLIT INTO TRAIN AND TEST DATA
-# ============================================================
-# We use 80% of data for training, 20% for testing
-# test_size=0.2 means 20% goes to test set
-# random_state=42 makes it reproducible (same split every time)
+    with open(LABELS_PATH, "wb") as file:
+        pickle.dump(crop_list, file)
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
+    print(f"\nSaved model artifact: {MODEL_PATH.name}")
+    print(f"Saved label artifact: {LABELS_PATH.name}")
 
-print(f"📚 Training data:  {X_train.shape[0]} rows")
-print(f"🧪 Testing data:   {X_test.shape[0]} rows\n")
+    sample = np.array([[90.0, 42.0, 43.0, 20.8, 82.0, 6.5, 202.9]])
+    pred_crop = crop_list[model.predict(sample)[0]]
+    print(f"Verification sample prediction: {pred_crop}")
 
-# ============================================================
-# STEP 6: TRAIN THE MACHINE LEARNING MODEL
-# ============================================================
-# Random Forest = like asking 100 experts and taking majority vote
-# n_estimators=100 means we use 100 decision trees
 
-print("🤖 Training the Random Forest model...")
-print("   (This might take a few seconds...)\n")
-
-model = RandomForestClassifier(n_estimators=100, random_state=42)
-model.fit(X_train, y_train)  # THIS is where the model learns!
-
-print("✅ Model training complete!\n")
-
-# ============================================================
-# STEP 7: TEST THE MODEL
-# ============================================================
-# Now we test on data the model has NEVER seen before (X_test)
-y_pred = model.predict(X_test)
-
-accuracy = accuracy_score(y_test, y_pred)
-print(f"🎯 Model Accuracy: {accuracy * 100:.2f}%")
-print("   (A score above 90% is excellent!)\n")
-
-# ============================================================
-# STEP 8: FEATURE IMPORTANCE (OPTIONAL - NICE TO SHOW IN PROJECT)
-# ============================================================
-features = ['N', 'P', 'K', 'Temperature', 'Humidity', 'pH', 'Rainfall']
-importances = model.feature_importances_
-
-print("📊 Which features matter most:")
-for feat, imp in sorted(zip(features, importances), key=lambda x: -x[1]):
-    bar = '█' * int(imp * 40)
-    print(f"   {feat:12s} {bar} {imp:.3f}")
-print()
-
-# ============================================================
-# STEP 9: SAVE THE TRAINED MODEL
-# ============================================================
-# We save the model so the Flask app can use it without retraining
-
-with open('crop_model.pkl', 'wb') as file:
-    pickle.dump(model, file)
-
-# Also save the crop list so Flask knows how to decode predictions
-with open('crop_names.pkl', 'wb') as file:
-    pickle.dump(crop_list, file)
-
-print("💾 Model saved as: crop_model.pkl")
-print("💾 Crop list saved as: crop_names.pkl\n")
-
-# ============================================================
-# STEP 10: TEST ONE PREDICTION MANUALLY
-# ============================================================
-print("🧪 Manual test — Rice conditions:")
-test_input = np.array([[90, 42, 43, 20.8, 82.0, 6.5, 202.9]])
-#                       N   P   K  temp  hum   ph  rainfall
-
-pred_num = model.predict(test_input)[0]
-pred_crop = crop_list[pred_num]
-print(f"   Input:  N=90, P=42, K=43, Temp=20.8, Humidity=82, pH=6.5, Rainfall=202.9")
-print(f"   Result: {pred_crop.upper()} (should be RICE)")
-print()
-
-print("=" * 55)
-print("✅ All done! Your model is ready.")
-print("   Next step: Run 'python app.py' to start the web app")
-print("=" * 55)
+if __name__ == "__main__":
+    main()

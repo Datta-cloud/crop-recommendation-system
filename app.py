@@ -1,99 +1,70 @@
-# ============================================================
-# CROP RECOMMENDATION SYSTEM - Flask Web App
-# For 1st Year Engineering Students
-# ============================================================
+"""Flask web application for serving Crop Recommendation ML predictions."""
 
-# IMPORTS: We need these libraries
-from flask import Flask, request, render_template  # Flask = web framework
-import numpy as np    # NumPy = for number arrays
-import pickle         # Pickle = for loading saved ML model
+import os
+from pathlib import Path
+import pickle
 
-# ============================================================
-# STEP 1: CREATE THE FLASK APP
-# ============================================================
-app = Flask(__name__)   # Create our web application
+from flask import Flask, render_template, request
+import numpy as np
 
-# ============================================================
-# STEP 2: LOAD THE TRAINED ML MODEL
-# ============================================================
-# We saved the model after training, now we load it
-with open('crop_model.pkl', 'rb') as file:
-    model = pickle.load(file)
+BASE_DIR = Path(__file__).resolve().parent
+MODEL_PATH = BASE_DIR / "crop_model.pkl"
+LABELS_PATH = BASE_DIR / "crop_names.pkl"
 
-print("✅ Model loaded successfully!")
-
-# ============================================================
-# STEP 3: LIST OF ALL 22 CROPS THE MODEL CAN PREDICT
-# ============================================================
-crop_names = [
-    'apple', 'banana', 'blackgram', 'chickpea', 'coconut',
-    'coffee', 'cotton', 'grapes', 'jute', 'kidneybeans',
-    'lentil', 'maize', 'mango', 'mothbeans', 'mungbean',
-    'muskmelon', 'orange', 'papaya', 'pigeonpeas', 'pomegranate',
-    'rice', 'watermelon'
+FEATURE_FIELDS = [
+    "Nitrogen",
+    "Phosphorus",
+    "Potassium",
+    "Temperature",
+    "Humidity",
+    "pH",
+    "Rainfall",
 ]
 
-# ============================================================
-# STEP 4: DEFINE ROUTES (PAGES OF OUR WEBSITE)
-# ============================================================
+app = Flask(__name__)
 
-# HOME PAGE - Just shows the form
-@app.route('/')
+with open(MODEL_PATH, "rb") as file:
+    model = pickle.load(file)
+
+with open(LABELS_PATH, "rb") as file:
+    crop_names = pickle.load(file)
+
+
+@app.route("/")
 def home():
-    """Shows the main page with the input form"""
-    return render_template('index.html')
+    """Render the main crop recommendation form."""
+    return render_template("index.html")
 
 
-# PREDICT PAGE - Gets the form data and makes prediction
-@app.route('/predict', methods=['POST'])
+@app.route("/predict", methods=["POST"])
 def predict():
-    """
-    This function runs when user clicks the 'Recommend Crop' button.
-    It:
-    1. Gets the values from the form
-    2. Puts them into an array
-    3. Feeds the array into the ML model
-    4. Shows the result to the user
-    """
+    """Parse soil/climate form inputs and render the predicted crop."""
+    form_data = {field: request.form.get(field, "").strip() for field in FEATURE_FIELDS}
 
-    # ----------------------------------------
-    # GET VALUES FROM THE HTML FORM
-    # ----------------------------------------
-    N = float(request.form['Nitrogen'])        # Nitrogen content
-    P = float(request.form['Phosphorus'])      # Phosphorus content
-    K = float(request.form['Potassium'])       # Potassium content
-    temperature = float(request.form['Temperature'])   # Temperature in Celsius
-    humidity = float(request.form['Humidity'])         # Humidity percentage
-    ph = float(request.form['pH'])                     # Soil pH value
-    rainfall = float(request.form['Rainfall'])         # Rainfall in mm
+    try:
+        features = [float(form_data[field]) for field in FEATURE_FIELDS]
+    except ValueError:
+        return (
+            render_template(
+                "index.html",
+                error="Please provide valid numeric values for all seven fields.",
+                form_data=form_data,
+            ),
+            400,
+        )
 
-    # ----------------------------------------
-    # CREATE INPUT ARRAY FOR THE MODEL
-    # The model expects a 2D array: [[N, P, K, temp, humidity, ph, rainfall]]
-    # ----------------------------------------
-    input_data = np.array([[N, P, K, temperature, humidity, ph, rainfall]])
+    input_data = np.array([features], dtype=float)
+    pred_idx = int(model.predict(input_data)[0])
+    predicted_crop = crop_names[pred_idx]
 
-    # ----------------------------------------
-    # MAKE PREDICTION USING ML MODEL
-    # The model returns a number (0-21), we map it to crop name
-    # ----------------------------------------
-    prediction = model.predict(input_data)     # Get prediction number
-    predicted_crop = crop_names[prediction[0]] # Convert number to crop name
-
-    # ----------------------------------------
-    # SHOW RESULT TO USER
-    # ----------------------------------------
-    result = f"🌱 Best Crop for Your Soil: {predicted_crop.upper()}"
-
-    print(f"📊 Input: N={N}, P={P}, K={K}, Temp={temperature}, Humidity={humidity}, pH={ph}, Rainfall={rainfall}")
-    print(f"🌾 Predicted Crop: {predicted_crop}")
-
-    return render_template('index.html', result=result, crop=predicted_crop)
+    return render_template(
+        "index.html",
+        result=True,
+        crop=predicted_crop,
+        form_data=form_data,
+    )
 
 
-# ============================================================
-# STEP 5: RUN THE APP
-# ============================================================
-if __name__ == '__main__':
-    # debug=True means it auto-reloads when you change code
-    app.run(debug=True)
+if __name__ == "__main__":
+    debug_mode = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
+    app.run(debug=debug_mode)
